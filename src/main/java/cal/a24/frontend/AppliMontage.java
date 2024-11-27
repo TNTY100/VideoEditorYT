@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.*;
@@ -65,11 +66,11 @@ public class AppliMontage extends Application {
         inputGridPane.getChildren().addAll(exporter);
         inputGridPane.getChildren().addAll(timeline);
 
-        final Pane rootGroup = new VBox(12);
-        rootGroup.getChildren().addAll(inputGridPane);
-        rootGroup.setPadding(new Insets(12, 12, 12, 12));
+        Scene scene = new Scene(inputGridPane);
+        inputGridPane.prefHeightProperty().bind(scene.heightProperty());
+        inputGridPane.prefWidthProperty().bind(scene.widthProperty());
 
-        stage.setScene(new Scene(rootGroup));
+        stage.setScene(scene);
         stage.setMaximized(true);
         stage.setTitle("Video Editor YT");
         stage.show();
