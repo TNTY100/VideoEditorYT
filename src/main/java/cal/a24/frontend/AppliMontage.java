@@ -1,21 +1,10 @@
 package cal.a24.frontend;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import java.io.File;
-import java.io.IOException;
-
-import static jdk.jfr.consumer.EventStream.openFile;
 
 public class AppliMontage extends Application {
 
@@ -27,6 +16,7 @@ public class AppliMontage extends Application {
     public void start(Stage stage) {
 
         var listeLecture = new ListeLecture(stage);
+        var timeline = new Timeline(stage);
 
         final GridPane inputGridPane = new GridPane();
         inputGridPane.setGridLinesVisible(true);
@@ -51,20 +41,14 @@ public class AppliMontage extends Application {
         videoViewer.setStyle("-fx-background-color: black");
         Rectangle exporter = new Rectangle();
         exporter.setStyle("-fx-background-color: grey;");
-        Rectangle timeline = new Rectangle();
-        timeline.setStyle("-fx-background-color: orange;");
+
 
         GridPane.setConstraints(listeLecture, 0, 0);
         GridPane.setConstraints(videoViewer, 1, 0, 1, 1);
-        GridPane.setConstraints(exporter, 3, 0);
-        GridPane.setConstraints(timeline, 0, 2, 3, 1);
+        GridPane.setConstraints(exporter, 2, 0);
+        GridPane.setConstraints(timeline, 0, 1, 3, 1);
 
-        inputGridPane.setHgap(6);
-        inputGridPane.setVgap(6);
-        inputGridPane.getChildren().addAll(listeLecture);
-        inputGridPane.getChildren().addAll(videoViewer);
-        inputGridPane.getChildren().addAll(exporter);
-        inputGridPane.getChildren().addAll(timeline);
+        inputGridPane.getChildren().addAll(listeLecture, timeline, videoViewer, exporter);
 
         Scene scene = new Scene(inputGridPane);
         inputGridPane.prefHeightProperty().bind(scene.heightProperty());
