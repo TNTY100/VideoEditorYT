@@ -63,7 +63,7 @@ public class ListeLecture extends VBox {
         this.getChildren().addAll(boutonGestionContainer, scrollPane);
     }
 
-    private void addFileToList(File file) {
+    void addFileToList(File file) {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file);
              JavaFXFrameConverter converter = new JavaFXFrameConverter()) {
             grabber.start();
@@ -103,5 +103,10 @@ public class ListeLecture extends VBox {
                 new FileChooser.ExtensionFilter("MP4", "*.mp4"),
                 new FileChooser.ExtensionFilter("MOV", "*.mov")
         );
+    }
+
+    public Video getSelectedVideo() {
+        if (selectedVideoTile == null) return null;
+        return selectedVideoTile.video;
     }
 }

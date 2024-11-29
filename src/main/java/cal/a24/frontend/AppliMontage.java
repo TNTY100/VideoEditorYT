@@ -1,10 +1,16 @@
 package cal.a24.frontend;
 
+import cal.a24.model.Montage;
+import cal.a24.model.Segment;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+
+import java.io.File;
 
 public class AppliMontage extends Application {
 
@@ -12,19 +18,23 @@ public class AppliMontage extends Application {
         launch(args);
     }
 
+    private Montage montage;
+
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws FFmpegFrameGrabber.Exception {
+        montage = new Montage();
 
         var listeLecture = new ListeLecture(stage);
-        var timeline = new Timeline(stage);
+        listeLecture.addFileToList(new File("C:\\Users\\1ythibault\\Videos\\1-FonctionnementAPI.mp4"));
+        var timeline = new Timeline(stage, montage, listeLecture);
 
         final GridPane inputGridPane = new GridPane();
         inputGridPane.setGridLinesVisible(true);
 
         RowConstraints rowConstraints1 = new RowConstraints();
-        rowConstraints1.setPercentHeight(50.0);
+        rowConstraints1.setPercentHeight(60.0);
         RowConstraints rowConstraints2 = new RowConstraints();
-        rowConstraints2.setPercentHeight(50.0);
+        rowConstraints2.setPercentHeight(40.0);
 
         ColumnConstraints columnConstraints1 = new ColumnConstraints();
         columnConstraints1.setPercentWidth(25.0);
