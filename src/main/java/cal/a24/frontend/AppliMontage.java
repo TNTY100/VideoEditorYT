@@ -1,12 +1,9 @@
 package cal.a24.frontend;
 
-import cal.a24.model.Montage;
-import cal.a24.model.Segment;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
@@ -18,15 +15,12 @@ public class AppliMontage extends Application {
         launch(args);
     }
 
-    private Montage montage;
-
     @Override
     public void start(Stage stage) throws FFmpegFrameGrabber.Exception {
-        montage = new Montage();
 
         var listeLecture = new ListeLecture(stage);
         listeLecture.addFileToList(new File("C:\\Users\\1ythibault\\Videos\\1-FonctionnementAPI.mp4"));
-        var timeline = new Timeline(stage, montage, listeLecture);
+        var timeline = new Timeline(listeLecture);
 
         final GridPane inputGridPane = new GridPane();
         inputGridPane.setGridLinesVisible(true);

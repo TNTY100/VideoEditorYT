@@ -1,8 +1,6 @@
 package cal.a24.frontend;
 
 import cal.a24.model.Segment;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.image.ImageView;
@@ -10,12 +8,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Data
+@Getter
+@Setter
 public class SegmentBlock extends StackPane {
     private static final double BORDER_THICKNESS = 5;
     private static long multiplicateur = 40_000;
@@ -25,6 +22,8 @@ public class SegmentBlock extends StackPane {
         LEFT,
         NONE
     }
+
+    private final Timeline timeline;
 
     private Segment segment;
     private ImageView imageViewDebut;
@@ -38,7 +37,8 @@ public class SegmentBlock extends StackPane {
     private Rectangle highlightedBorder;
     private Rectangle bgRectangle;
 
-    public SegmentBlock(Segment segment) {
+    public SegmentBlock(Segment segment, Timeline timeline) {
+        this.timeline = timeline;
         this.segment = segment;
         setWidth((double) segment.getDuree() / multiplicateur);
         setHeight(150);
@@ -63,8 +63,8 @@ public class SegmentBlock extends StackPane {
         highlightedBorder = new Rectangle(BORDER_THICKNESS, getHeight());
         highlightedBorder.setFill(Paint.valueOf("red"));
 
-        setBorder(Border.stroke(Paint.valueOf("black")));
         setBackground(Background.fill(Paint.valueOf("lightgrey")));
+        setNormalBorder();
         addResizeListeners();
     }
 
@@ -84,6 +84,11 @@ public class SegmentBlock extends StackPane {
         });
 
         setOnMousePressed(event -> {
+            if (sideToResize == SideToResize.NONE) {
+                timeline.setSelectedSegment(this);
+                return;
+            }
+
             mouseX = event.getScreenX();
             mouseY = event.getScreenY();
             widthAtResizeStart = getWidth();
@@ -118,6 +123,9 @@ public class SegmentBlock extends StackPane {
         });
 
         setOnMouseReleased(e -> {
+            if (sideToResize == SideToResize.NONE){
+                return;
+            }
 
             mouseClicked = false;
             setSideToResize(SideToResize.NONE);
@@ -157,5 +165,13 @@ public class SegmentBlock extends StackPane {
     public void changeWidth(double width) {
         setWidth(width);
         bgRectangle.setWidth(width);
+    }
+
+    public void setNormalBorder() {
+        setBorder(Border.stroke(Paint.valueOf("black")));
+    }
+
+    public void setSelectedBorder() {
+        setBorder(Border.stroke(Paint.valueOf("red")));
     }
 }

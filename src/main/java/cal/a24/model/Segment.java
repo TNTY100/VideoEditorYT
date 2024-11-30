@@ -10,8 +10,11 @@ import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameConverter;
 import org.bytedeco.javacv.JavaFXFrameConverter;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 @Data
-public class Segment {
+public class Segment implements Closeable {
 
     public static FrameConverter<Image> converter = new JavaFXFrameConverter();
 
@@ -56,5 +59,11 @@ public class Segment {
 
     public long getDuree() {
         return timestampFin - timestampDebut;
+    }
+
+    @Override
+    public void close() throws IOException {
+        grabber.stop();
+        grabber.close();
     }
 }

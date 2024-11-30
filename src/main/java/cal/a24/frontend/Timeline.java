@@ -1,6 +1,5 @@
 package cal.a24.frontend;
 
-import cal.a24.model.Montage;
 import cal.a24.model.Segment;
 import cal.a24.model.Video;
 import javafx.scene.control.Button;
@@ -8,17 +7,17 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
+
+import java.io.IOException;
 
 public class Timeline extends VBox {
 
-    private final Montage montage;
     private final ListeLecture listeLecture;
-    private HBox timelineVideo;
+    private final HBox timelineVideo;
+    private SegmentBlock selectedSegmentBlock;
 
-    public Timeline(Stage stage, Montage montage, ListeLecture listeLecture) {
-        this.montage = montage;
+    public Timeline(ListeLecture listeLecture) {
         this.listeLecture = listeLecture;
 
         setFillWidth(true);
@@ -33,6 +32,7 @@ public class Timeline extends VBox {
         Button addVideoToTimeline = new Button("Ajouter la vidéo");
         Button moveSegmentRight = new Button("Bouger segment à droite");
         Button moveSegmentLeft = new Button("Bouger segment à gauche");
+        Button deleteSegment = new Button("Suprimer segment");
 
         addVideoToTimeline.setStyle("-fx-start-margin: 100px");
         HBox bouttons = new HBox();
@@ -45,7 +45,8 @@ public class Timeline extends VBox {
                 buttonForward,
                 addVideoToTimeline,
                 moveSegmentLeft,
-                moveSegmentRight
+                moveSegmentRight,
+                deleteSegment
         );
 
         timelineVideo = new HBox();
@@ -58,26 +59,44 @@ public class Timeline extends VBox {
                 throw new RuntimeException(e);
             }
         });
+
+        deleteSegment.setOnAction(_ -> {
+            if (selectedSegmentBlock == null) {
+                return;
+            }
+            // Safely remove and nullify first
+            timelineVideo.getChildren().remove(selectedSegmentBlock);
+            try {
+                selectedSegmentBlock.getSegment().close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            selectedSegmentBlock = null;
+            // Encourage le garbage collector parce que beaucoup d'objet sont devenu orphelin. (Non déterministe)
+            System.gc();
+        });
         this.getChildren().addAll(bouttons, scrollPane);
     }
 
-    public void getVideoFromListLecture() throws FFmpegFrameGrabber.Exception {
+    private void getVideoFromListLecture() throws FFmpegFrameGrabber.Exception {
         Video selectedVideo = listeLecture.getSelectedVideo();
         if (selectedVideo == null) {
             return;
         }
 
-        montage.addSegment(new Segment(selectedVideo.getPATH()));
-        timelineVideo.getChildren().clear();
-        timelineVideo.getChildren().addAll(
-                montage.getSegmentList().stream()
-                        .map(SegmentBlock::new)
-                        .toList());
-        timelineVideo.getChildren().forEach((node -> {
-            if (node instanceof SegmentBlock) {
-                System.out.println(((SegmentBlock) node).getSegment().getDuree());
-            }
-        }));
+        timelineVideo.getChildren().add(new SegmentBlock(new Segment(selectedVideo.getPATH()), this));
     }
 
+    public void setSelectedSegment(SegmentBlock segmentBlock) {
+        if (segmentBlock == selectedSegmentBlock) {
+            selectedSegmentBlock.setNormalBorder();
+            selectedSegmentBlock = null;
+            return;
+        }
+
+        if (selectedSegmentBlock != null)
+            selectedSegmentBlock.setNormalBorder();
+        selectedSegmentBlock = segmentBlock;
+        selectedSegmentBlock.setSelectedBorder();
+    }
 }
