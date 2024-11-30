@@ -74,30 +74,16 @@ public class SegmentBlock extends StackPane {
             if (mouseClicked)
                 return;
 
-            SideToResize sideToResizeTemp = getResizableBorder(event);
-            if (sideToResizeTemp == sideToResize){
-                return;
-            }
-            sideToResize = sideToResizeTemp;
+            setSideToResize(getResizableBorder(event));
 
-            if (sideToResize != SideToResize.NONE) {
-                setCursor(Cursor.E_RESIZE);
-                if (sideToResize == SideToResize.LEFT) {
-                    StackPane.setAlignment(highlightedBorder, Pos.TOP_LEFT);
-                }
-                else {
-                    StackPane.setAlignment(highlightedBorder, Pos.TOP_RIGHT);
-
-                }
-                getChildren().add(highlightedBorder);
-            } else {
+            if (sideToResize == SideToResize.NONE) {
                 setCursor(Cursor.DEFAULT);
-                getChildren().remove(highlightedBorder);
+            } else {
+                setCursor(Cursor.H_RESIZE);
             }
         });
 
         setOnMousePressed(event -> {
-            System.out.println("Mouse pressed");
             mouseX = event.getScreenX();
             mouseY = event.getScreenY();
             widthAtResizeStart = getWidth();
@@ -108,8 +94,6 @@ public class SegmentBlock extends StackPane {
 
         setOnMouseDragged(event -> {
             double dx = event.getScreenX() - mouseX;
-            System.out.println(event.getScreenX());
-            System.out.println(dx);
 
             if (sideToResize != SideToResize.NONE) {
                 double newWidth;
@@ -129,15 +113,33 @@ public class SegmentBlock extends StackPane {
             if (sideToResize == SideToResize.NONE || mouseClicked){
                 return;
             }
-            sideToResize = SideToResize.NONE;
             setCursor(Cursor.DEFAULT);
-            getChildren().remove(highlightedBorder);
+            setSideToResize(SideToResize.NONE);
         });
 
         setOnMouseReleased(e -> {
+
             mouseClicked = false;
-            getChildren().remove(highlightedBorder);
+            setSideToResize(SideToResize.NONE);
         });
+    }
+
+    private void setSideToResize(SideToResize sideToResize) {
+        if (this.sideToResize == sideToResize)
+            return;
+
+        this.sideToResize = sideToResize;
+
+        if (sideToResize == SideToResize.RIGHT) {
+            StackPane.setAlignment(highlightedBorder, Pos.TOP_RIGHT);
+            getChildren().add(highlightedBorder);
+        }
+        else if (sideToResize == SideToResize.LEFT) {
+            StackPane.setAlignment(highlightedBorder, Pos.TOP_LEFT);
+            getChildren().add(highlightedBorder);
+        } else {
+            getChildren().remove(highlightedBorder);
+        }
     }
 
     private SideToResize getResizableBorder(MouseEvent event) {
