@@ -27,9 +27,11 @@ public class Segment {
     private FFmpegFrameGrabber grabber;
 
     private long timestampDebut;
-    private long timestampVideoDebut;
+    @Setter(AccessLevel.NONE)
+    private final long timestampVideoDebut;
     private long timestampFin;
-    private long timestampVideoFin;
+    @Setter(AccessLevel.NONE)
+    private final long timestampVideoFin;
 
     private Image imageDebut;
     private Image imageFin;
@@ -38,8 +40,10 @@ public class Segment {
     public Segment(String pathVideo) throws FFmpegFrameGrabber.Exception {
         grabber = new FFmpegFrameGrabber(pathVideo);
         grabber.start();
-        timestampDebut = 0;
-        timestampFin = grabber.getLengthInTime();
+        timestampVideoDebut = 0;
+        timestampDebut = timestampVideoDebut;
+        timestampVideoFin = grabber.getLengthInTime();
+        timestampFin = timestampVideoFin;
         setupImages();
     }
 
