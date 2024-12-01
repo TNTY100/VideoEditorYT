@@ -22,6 +22,9 @@ public class AppliMontage extends Application {
         listeLecture.addFileToList(new File("C:\\Users\\1ythibault\\Videos\\1-FonctionnementAPI.mp4"));
         var timeline = new Timeline(listeLecture);
 
+        Rectangle videoViewer = new Rectangle();
+        videoViewer.setStyle("-fx-background-color: black");
+
         final GridPane inputGridPane = new GridPane();
         inputGridPane.setGridLinesVisible(true);
 
@@ -41,8 +44,7 @@ public class AppliMontage extends Application {
         inputGridPane.getColumnConstraints().addAll(columnConstraints1, columnConstraints2, columnConstraints3);
 
 
-        Rectangle videoViewer = new Rectangle();
-        videoViewer.setStyle("-fx-background-color: black");
+
         Rectangle exporter = new Rectangle();
         exporter.setStyle("-fx-background-color: grey;");
 

@@ -24,25 +24,15 @@ public class Timeline extends VBox {
         ScrollPane scrollPane = new ScrollPane();
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        Button buttonBack = new Button("Back");
-        // Button buttonBackFrame = new Button("Back frame");
-        Button buttonPlayPause = new Button("Play");
-        // Button buttonForwardFrame = new Button("Forward frame");
-        Button buttonForward = new Button("Forward");
         Button addVideoToTimeline = new Button("Ajouter la vidéo");
         Button moveSegmentRight = new Button("Bouger segment à droite");
         Button moveSegmentLeft = new Button("Bouger segment à gauche");
-        Button deleteSegment = new Button("Suprimer segment");
+        Button deleteSegment = new Button("Supprimer segment");
 
         addVideoToTimeline.setStyle("-fx-start-margin: 100px");
         HBox bouttons = new HBox();
 
         bouttons.getChildren().addAll(
-                buttonBack,
-                // buttonBackFrame,
-                buttonPlayPause,
-                // buttonForwardFrame,
-                buttonForward,
                 addVideoToTimeline,
                 moveSegmentLeft,
                 moveSegmentRight,
@@ -54,37 +44,69 @@ public class Timeline extends VBox {
 
         addVideoToTimeline.setOnAction(_ -> {
             try {
-                getVideoFromListLecture();
+                addVideoFromListeLecture();
             } catch (FFmpegFrameGrabber.Exception e) {
                 throw new RuntimeException(e);
             }
         });
+        deleteSegment.setOnAction(_ -> removeSelectedSegment());
+        moveSegmentRight.setOnAction(_ -> moveSelectedSegmentRight());
+        moveSegmentLeft.setOnAction(_ -> moveSelectedSegmentLeft());
 
-        deleteSegment.setOnAction(_ -> {
-            if (selectedSegmentBlock == null) {
-                return;
-            }
-            // Safely remove and nullify first
-            timelineVideo.getChildren().remove(selectedSegmentBlock);
-            try {
-                selectedSegmentBlock.getSegment().close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            selectedSegmentBlock = null;
-            // Encourage le garbage collector parce que beaucoup d'objet sont devenu orphelin. (Non déterministe)
-            System.gc();
-        });
         this.getChildren().addAll(bouttons, scrollPane);
     }
 
-    private void getVideoFromListLecture() throws FFmpegFrameGrabber.Exception {
+    private void moveSelectedSegmentLeft() {
+        if (selectedSegmentBlock == null) {
+            return;
+        }
+        int index = timelineVideo.getChildren().indexOf(selectedSegmentBlock);
+        if (index - 1 < 0) {
+            return;
+        }
+
+        timelineVideo.getChildren().remove(selectedSegmentBlock);
+        timelineVideo.getChildren().add(index - 1, selectedSegmentBlock);
+    }
+
+    private void moveSelectedSegmentRight() {
+        if (selectedSegmentBlock == null) {
+            return;
+        }
+        int index = timelineVideo.getChildren().indexOf(selectedSegmentBlock);
+        if (index + 1 >= timelineVideo.getChildren().size()) { // ou faire le size - 1... même chose
+            return;
+        }
+
+        timelineVideo.getChildren().remove(selectedSegmentBlock);
+        timelineVideo.getChildren().add(index + 1, selectedSegmentBlock);
+    }
+
+    private void removeSelectedSegment() {
+        if (selectedSegmentBlock == null) {
+            return;
+        }
+        timelineVideo.getChildren().remove(selectedSegmentBlock);
+        try {
+            selectedSegmentBlock.getSegment().close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        selectedSegmentBlock = null;
+        // Encourage le garbage collector parce que beaucoup d'objet sont devenu orphelin. (Non déterministe)
+        System.gc();
+    }
+
+    private void addVideoFromListeLecture() throws FFmpegFrameGrabber.Exception {
         Video selectedVideo = listeLecture.getSelectedVideo();
         if (selectedVideo == null) {
             return;
         }
 
-        timelineVideo.getChildren().add(new SegmentBlock(new Segment(selectedVideo.getPATH()), this));
+        Segment segment = new Segment(selectedVideo.getPATH());
+        SegmentBlock segmentBlock = new SegmentBlock(segment, this);
+
+        timelineVideo.getChildren().add(segmentBlock);
     }
 
     public void setSelectedSegment(SegmentBlock segmentBlock) {
