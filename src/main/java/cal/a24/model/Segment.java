@@ -12,13 +12,14 @@ import org.bytedeco.javacv.JavaFXFrameConverter;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 @Data
 public class Segment implements Closeable {
 
     public static FrameConverter<Image> converter = new JavaFXFrameConverter();
 
-    public static void setConverter(FrameConverter<Image> converter) {
+    public static void setConverter(FrameConverter<Image> converter) { // Pour les tests s'il y en a dans le futur???
         Segment.converter = converter;
     }
 
@@ -29,11 +30,11 @@ public class Segment implements Closeable {
     @Getter(AccessLevel.NONE)
     private FFmpegFrameGrabber grabber;
 
+    @Setter(AccessLevel.NONE)
     private long timestampDebut;
-    @Setter(AccessLevel.NONE)
     private final long timestampVideoDebut;
-    private long timestampFin;
     @Setter(AccessLevel.NONE)
+    private long timestampFin;
     private final long timestampVideoFin;
 
     private Image imageDebut;
@@ -48,6 +49,9 @@ public class Segment implements Closeable {
         timestampVideoFin = grabber.getLengthInTime();
         timestampFin = timestampVideoFin;
         setupImages();
+
+        System.out.println("TD" + timestampVideoDebut);
+        System.out.println("TF" + timestampVideoFin);
     }
 
     private void setupImages() throws FFmpegFrameGrabber.Exception {
@@ -65,5 +69,35 @@ public class Segment implements Closeable {
     public void close() throws IOException {
         grabber.stop();
         grabber.close();
+    }
+
+    public Segment setTimestampDebut(long timestampDebut) {
+        if (timestampDebut < timestampVideoDebut) {
+            throw new RuntimeException("Le timestamp du début ne peux pas être plus petit que 0");
+        }
+        if (timestampDebut >= timestampFin) {
+            throw new RuntimeException("Le timestamp du début ne peux pas venir après celui de la fin du segment.");
+        }
+        this.timestampDebut = timestampDebut;
+        return this;
+    }
+
+    public Segment setTimestampFin(long timestampFin) {
+        if (timestampFin > timestampVideoFin) {
+            throw new RuntimeException("Le timestamp de la fin ne peux pas être placé après le timestamp final de la vidéo.");
+        }
+        if (timestampFin <= timestampDebut) {
+            throw new RuntimeException("Le timestamp de la fin ne peux pas venir avant celui du début du segment.");
+        }
+        this.timestampFin = timestampFin;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "Segment{" +
+                "timestampDebut=" + timestampDebut +
+                ", timestampFin=" + timestampFin +
+                '}';
     }
 }

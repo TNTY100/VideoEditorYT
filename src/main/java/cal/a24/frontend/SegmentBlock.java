@@ -30,9 +30,10 @@ public class SegmentBlock extends StackPane {
     private ImageView imageViewFin;
 
     private double mouseX, mouseY;
-    private SideToResize sideToResize;
-    private double widthAtResizeStart;
     private boolean mouseClicked;
+    private SideToResize sideToResize;
+    private long widthAtResizeStart;
+    private long widthLong;
 
     private Rectangle highlightedBorder;
     private Rectangle bgRectangle;
@@ -40,8 +41,10 @@ public class SegmentBlock extends StackPane {
     public SegmentBlock(Segment segment, Timeline timeline) {
         this.timeline = timeline;
         this.segment = segment;
-        setWidth((double) segment.getDuree() / multiplicateur);
+
+        widthLong = segment.getDuree();
         setHeight(150);
+
         bgRectangle = new Rectangle();
         bgRectangle.setFill(Paint.valueOf("grey"));
         bgRectangle.setHeight(getHeight());
@@ -66,6 +69,7 @@ public class SegmentBlock extends StackPane {
         setBackground(Background.fill(Paint.valueOf("lightgrey")));
         setNormalBorder();
         addResizeListeners();
+        changeWidth(widthLong);
     }
 
     private void addResizeListeners() {
@@ -91,23 +95,23 @@ public class SegmentBlock extends StackPane {
 
             mouseX = event.getScreenX();
             mouseY = event.getScreenY();
-            widthAtResizeStart = getWidth();
+            widthAtResizeStart = widthLong;
             mouseClicked = true;
         });
 
 
 
         setOnMouseDragged(event -> {
-            double dx = event.getScreenX() - mouseX;
+            long dx = (long) ((event.getScreenX() - mouseX) * multiplicateur);
 
             if (sideToResize != SideToResize.NONE) {
-                double newWidth;
+                long newWidth;
                 if (sideToResize == SideToResize.RIGHT){
-                    newWidth = Math.min((double) segment.getTimestampVideoFin() / multiplicateur, widthAtResizeStart + dx);
+                    newWidth = calculateMaxWidthFromRight(dx);
                 }
-                else
-                    newWidth = widthAtResizeStart - dx;
-
+                else {
+                    newWidth = calculateMaxWidthFromLeft(dx);
+                }
                 if (newWidth > 0) {
                     changeWidth(newWidth);
                 }
@@ -122,9 +126,38 @@ public class SegmentBlock extends StackPane {
             setSideToResize(SideToResize.NONE);
         });
 
-        setOnMouseReleased(e -> {
+        setOnMouseReleased(_ -> {
             if (sideToResize == SideToResize.NONE){
                 return;
+            }
+
+            if (sideToResize == SideToResize.RIGHT) {
+                long differance = widthLong - widthAtResizeStart;
+
+                long nouveauTimestampFin = segment.getTimestampFin() +  differance;
+
+                try {
+                    segment.setTimestampFin(nouveauTimestampFin);
+                }
+                catch (RuntimeException e) {
+                    e.printStackTrace();
+                    // S'il y a une erreur on doit rollback.
+                    changeWidth(widthAtResizeStart);
+                }
+            }
+            else {
+                long differance = widthLong - widthAtResizeStart;
+
+                long nouveauTimestampDebut = segment.getTimestampDebut() -  differance;
+
+                try {
+                    segment.setTimestampDebut(nouveauTimestampDebut);
+                }
+                catch (RuntimeException e) {
+                    e.printStackTrace();
+                    // S'il y a une erreur on doit rollback.
+                    changeWidth(widthAtResizeStart);
+                }
             }
 
             mouseClicked = false;
@@ -162,9 +195,10 @@ public class SegmentBlock extends StackPane {
         }
     }
 
-    public void changeWidth(double width) {
-        setWidth(width);
-        bgRectangle.setWidth(width);
+    public void changeWidth(long width) {
+        widthLong = width;
+        setWidth((double) width/multiplicateur);
+        bgRectangle.setWidth((double) width/multiplicateur);
     }
 
     public void setNormalBorder() {
@@ -173,5 +207,13 @@ public class SegmentBlock extends StackPane {
 
     public void setSelectedBorder() {
         setBorder(Border.stroke(Paint.valueOf("red")));
+    }
+
+    private long calculateMaxWidthFromLeft(long dx) {
+        return Math.min(segment.getTimestampFin(), widthAtResizeStart - dx);
+    }
+
+    public long calculateMaxWidthFromRight(long dx) {
+        return Math.min(segment.getTimestampVideoFin() - segment.getTimestampDebut(), widthAtResizeStart + dx);
     }
 }
