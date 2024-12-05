@@ -20,26 +20,26 @@ public class TimelinePlayer extends VBox {
     private long currentTimestamp;
     private long tempTotalMontage;
     private int readMultiplyer = 0;
-    // private long deltaFrame = 10000; // 1000 for 30 FPS
     private final TimelineCursor cursor;
+    private final Image image = new Image("file:./src/main/resources/imageGenerique.png", true);
 
     public TimelinePlayer(GridPane inputGridPane, TimelineCursor cursor) {
         this.cursor = cursor;
-        // Ajout du rectangle
 
-        Image image = new Image("file:C:\\Users\\1ythibault\\Pictures\\Screenshots\\000000000000000000000000000000000000000000000000000.png", true);
+        // Ajout du viewport de la vidéo
         imageView = new ImageView(image);
         imageView.smoothProperty().set(false);
         imageView.setPreserveRatio(true);
         imageView.fitWidthProperty().bind(inputGridPane.widthProperty().divide(2));
         imageView.fitHeightProperty().bind(inputGridPane.heightProperty().multiply(0.57));
 
-        // Ajout du timer
+        // TODO : Ajout du timer
+
+        // Ajout des contrôles
         Button buttonBack = new Button("Back");
         buttonBack.setOnAction((_) -> {
             readMultiplyer -= 1;
         });
-        // Button buttonBackFrame = new Button("Back frame");
         Button buttonPlayPause = new Button("Play/Pause");
         buttonPlayPause.setOnAction(_ -> {
             if (readMultiplyer == 0) {
@@ -49,7 +49,6 @@ public class TimelinePlayer extends VBox {
                 readMultiplyer = 0;
             }
         });
-        // Button buttonForwardFrame = new Button("Forward frame");
         Button buttonForward = new Button("Forward");
         buttonForward.setOnAction(_ -> {
             readMultiplyer += 1;
@@ -78,15 +77,15 @@ public class TimelinePlayer extends VBox {
         long lastUpdate = Instant.now().toEpochMilli();
         while (true) {
             long currentUpdate = Instant.now().toEpochMilli();
-            videoThread((currentUpdate - lastUpdate) * 1000);
+            videoUpdate((currentUpdate - lastUpdate) * 1000);
             lastUpdate = currentUpdate;
         }
     }
 
-    public void videoThread(long deltaTime) {
+    public void videoUpdate(long deltaTime) {
         currentTimestamp += deltaTime * readMultiplyer;
         if (tempTotalMontage == 0 || currentTimestamp > tempTotalMontage) {
-            currentTimestamp -= deltaTime * readMultiplyer;
+            currentTimestamp = tempTotalMontage;
             readMultiplyer = 0;
             try {
                 Thread.sleep(100);
@@ -95,8 +94,7 @@ public class TimelinePlayer extends VBox {
             }
             return;
         }
-
-        imageView.setImage(montage.getImageFXAtTimeStamp(currentTimestamp)); // TODO : Mettre try
+        updateImage();
         updateCursor();
     }
 
@@ -108,14 +106,26 @@ public class TimelinePlayer extends VBox {
     public void onMontageTimeChange() {
         readMultiplyer = 0;
         tempTotalMontage = montage.getDureeTotale();
-        if (currentTimestamp > tempTotalMontage) {
+        if (tempTotalMontage == 0) {
+            imageView.setImage(image);
+        }
+        else if (currentTimestamp > tempTotalMontage) {
             currentTimestamp = tempTotalMontage;
+            updateImage();
             updateCursor();
+        }
+    }
+
+    public void updateImage() {
+        try {
+            imageView.setImage(montage.getImageFXAtTimeStamp(currentTimestamp));
+        }
+        catch (RuntimeException e) {
+            imageView.setImage(image);
         }
     }
 
     public void updateCursor() {
         cursor.setRelativePosition((double) currentTimestamp / tempTotalMontage);
-        imageView.setImage(montage.getImageFXAtTimeStamp(currentTimestamp)); // TODO : Mettre try
     }
 }

@@ -23,12 +23,7 @@ public class Montage {
 
         for (Segment segment: segments) {
             if (timestamp < segment.getDuree()) {
-                try {
-                    return segment.getImageFXAtTimestampInContent(timestamp);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
+                return segment.getImageFXAtTimestampInContent(timestamp);
             }
             timestamp -= segment.getDuree();
         }

@@ -10,6 +10,7 @@ import org.bytedeco.javacv.*;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Data
 public class Segment implements Closeable {
@@ -36,6 +37,8 @@ public class Segment implements Closeable {
 
     private Image imageDebut;
     private Image imageFin;
+
+    private ReentrantLock mutex = new ReentrantLock();
 
 
     public Segment(String pathVideo) throws FFmpegFrameGrabber.Exception {
@@ -64,8 +67,14 @@ public class Segment implements Closeable {
 
     @Override
     public void close() throws IOException {
-        grabber.stop();
-        grabber.close();
+        try {
+            mutex.lock();
+            grabber.stop();
+            grabber.close();
+        }
+        finally {
+            mutex.unlock();
+        }
     }
 
     public Segment setTimestampDebut(long timestampDebut) {
@@ -90,15 +99,24 @@ public class Segment implements Closeable {
         return this;
     }
 
-    public Image getImageFXAtTimestampInContent(long timestamp) throws FFmpegFrameGrabber.Exception {
-        timestamp = timestampDebut + timestamp;
-        if (timestamp < 0 || timestamp > timestampFin) {
-            throw new RuntimeException("Le timestamp ne fait pas parti de l'intervalle voulue");
+    public Image getImageFXAtTimestampInContent(long timestamp) {
+        try {
+            mutex.lock();
+            timestamp = timestampDebut + timestamp;
+            if (timestamp < 0 || timestamp > timestampFin) {
+                throw new RuntimeException("Le timestamp ne fait pas parti de l'intervalle voulue");
+            }
+
+            grabber.setVideoTimestamp(timestamp);
+
+            return converter.convert(grabber.grabImage());
         }
-
-        grabber.setVideoTimestamp(timestamp);
-
-        return converter.convert(grabber.grabImage());
+        catch (FFmpegFrameGrabber.Exception e) {
+            throw new RuntimeException("Le grabber était déjà fermé");
+        }
+        finally {
+            mutex.unlock();
+        }
     }
 
     public void startGrab() throws FrameGrabber.Exception {
