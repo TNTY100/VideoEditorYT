@@ -56,9 +56,30 @@ public class Segment implements Closeable {
 
     private void setupImages() throws FFmpegFrameGrabber.Exception {
         grabber.setTimestamp(timestampDebut);
-        imageDebut = convert(grabber.grabImage());
+        Image imageDebutOg = imageDebut;
+        Frame frameStart;
+        while (imageDebutOg == imageDebut) {
+            try {
+                grabber.setFrameNumber(grabber.getFrameNumber() + 1);
+                frameStart = grabber.grabImage();
+                imageDebut = convert(frameStart);
+            }
+            catch (RuntimeException _) {}
+        }
+
+        // permet d'aller chercher la dernière image même si le son continu
+
         grabber.setTimestamp(timestampFin);
-        imageFin = convert(grabber.grabImage());
+        Image imageFinOg = imageFin;
+        Frame frameFin;
+        while (imageFinOg == imageFin) {
+            try {
+                grabber.setFrameNumber(grabber.getFrameNumber() - 1);
+                frameFin = grabber.grabImage();
+                imageFin = convert(frameFin);
+            }
+            catch (RuntimeException _) {}
+        }
     }
 
     public long getDuree() {
@@ -85,6 +106,12 @@ public class Segment implements Closeable {
             throw new RuntimeException("Le timestamp du début ne peux pas venir après celui de la fin du segment.");
         }
         this.timestampDebut = timestampDebut;
+
+        try {
+            setupImages();
+        } catch (FFmpegFrameGrabber.Exception e) {
+            throw new RuntimeException(e);
+        }
         return this;
     }
 
@@ -96,6 +123,12 @@ public class Segment implements Closeable {
             throw new RuntimeException("Le timestamp de la fin ne peux pas venir avant celui du début du segment.");
         }
         this.timestampFin = timestampFin;
+
+        try {
+            setupImages();
+        } catch (FFmpegFrameGrabber.Exception e) {
+            throw new RuntimeException(e);
+        }
         return this;
     }
 
