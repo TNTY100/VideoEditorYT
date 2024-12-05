@@ -16,6 +16,7 @@ import lombok.Setter;
 public class SegmentBlock extends StackPane {
     private static final double BORDER_THICKNESS = 5;
     private static long multiplicateur = 40_000;
+    private static final long IMAGE_MAX_WIDTH = 200;
 
     enum SideToResize {
         RIGHT,
@@ -53,11 +54,11 @@ public class SegmentBlock extends StackPane {
 
         imageViewDebut = new ImageView(segment.getImageDebut());
         imageViewDebut.setPreserveRatio(true);
-        imageViewDebut.setFitHeight(100);
+        imageViewDebut.setFitWidth(IMAGE_MAX_WIDTH);
 
         imageViewFin = new ImageView(segment.getImageFin());
         imageViewFin.setPreserveRatio(true);
-        imageViewFin.setFitHeight(100);
+        imageViewFin.setFitWidth(IMAGE_MAX_WIDTH);
 
         StackPane.setAlignment(imageViewDebut, Pos.TOP_LEFT);
         StackPane.setAlignment(imageViewFin, Pos.TOP_RIGHT);
@@ -88,6 +89,10 @@ public class SegmentBlock extends StackPane {
         });
 
         setOnMousePressed(event -> {
+            if (event.isControlDown()) {
+                sideToResize = SideToResize.NONE;
+                return;
+            }
             if (sideToResize == SideToResize.NONE) {
                 videoTimeline.setSelectedSegment(this);
                 return;
@@ -115,6 +120,9 @@ public class SegmentBlock extends StackPane {
                 if (newWidth > 0) {
                     changeWidth(newWidth);
                 }
+
+                imageViewFin.setFitWidth(Math.min(IMAGE_MAX_WIDTH, bgRectangle.getWidth()));
+                imageViewDebut.setFitWidth(Math.min(IMAGE_MAX_WIDTH, bgRectangle.getWidth()));
             }
         });
 
@@ -165,6 +173,10 @@ public class SegmentBlock extends StackPane {
             mouseClicked = false;
             videoTimeline.onChangeTime();
             setSideToResize(SideToResize.NONE);
+            if (bgRectangle.getWidth() < IMAGE_MAX_WIDTH){
+                imageViewDebut.setFitWidth(bgRectangle.getWidth());
+                imageViewFin.setFitWidth(bgRectangle.getWidth());
+            }
         });
     }
 
@@ -173,6 +185,7 @@ public class SegmentBlock extends StackPane {
             return;
 
         this.sideToResize = sideToResize;
+        getChildren().remove(highlightedBorder);
 
         if (sideToResize == SideToResize.RIGHT) {
             StackPane.setAlignment(highlightedBorder, Pos.TOP_RIGHT);
@@ -181,8 +194,6 @@ public class SegmentBlock extends StackPane {
         else if (sideToResize == SideToResize.LEFT) {
             StackPane.setAlignment(highlightedBorder, Pos.TOP_LEFT);
             getChildren().add(highlightedBorder);
-        } else {
-            getChildren().remove(highlightedBorder);
         }
     }
 

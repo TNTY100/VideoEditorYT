@@ -26,38 +26,37 @@ public class VideoTimeline extends VBox {
     private final HBox timelineVideo;
     private SegmentBlock selectedSegmentBlock;
 
-    private final TimelineCursor cursor;
 
-    public VideoTimeline(ListeLecture listeLecture, TimelineCursor cursor) {
+    public VideoTimeline(ListeLecture listeLecture, TimelineCursorContainer timelineCursorContainer) {
         this.listeLecture = listeLecture;
 
         setFillWidth(true);
         ScrollPane scrollPane = new ScrollPane();
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
+
+        // Time line avec le curseur
+        timelineVideo = new HBox();
+        timelineVideo.setFillHeight(false);
+        timelineCursorContainer.getChildren().addFirst(timelineVideo);
+
+        // Boutons
+        HBox bouttons = new HBox();
         Button addVideoToTimeline = new Button("Ajouter la vidéo");
         Button moveSegmentRight = new Button("Bouger segment à droite");
         Button moveSegmentLeft = new Button("Bouger segment à gauche");
         Button deleteSegment = new Button("Supprimer segment");
-
-        addVideoToTimeline.setStyle("-fx-start-margin: 100px");
-        HBox bouttons = new HBox();
+        Button couper = new Button("Couper segment");
 
         bouttons.getChildren().addAll(
                 addVideoToTimeline,
                 moveSegmentLeft,
                 moveSegmentRight,
-                deleteSegment
+                deleteSegment,
+                couper
         );
-        StackPane stackTimeLine = new StackPane();
-        stackTimeLine.setAlignment(Pos.TOP_LEFT);
 
-        scrollPane.setContent(stackTimeLine);
-
-        timelineVideo = new HBox();
-        timelineVideo.setFillHeight(false);
-        stackTimeLine.getChildren().add(timelineVideo);
-
+        // Déclaration des actions
         addVideoToTimeline.setOnAction(_ -> {
             try {
                 addVideoFromListeLecture();
@@ -68,14 +67,14 @@ public class VideoTimeline extends VBox {
         deleteSegment.setOnAction(_ -> removeSelectedSegment());
         moveSegmentRight.setOnAction(_ -> moveSelectedSegmentRight());
         moveSegmentLeft.setOnAction(_ -> moveSelectedSegmentLeft());
+        couper.setOnAction(_ -> couperSegment());
 
-        // Curseur
-        this.cursor = cursor;
-        this.cursor.heightProperty().bind(scrollPane.heightProperty());
-        this.cursor.getMaxTranslateX().bind(timelineVideo.widthProperty());
-
-        stackTimeLine.getChildren().add(this.cursor);
+        scrollPane.setContent(timelineCursorContainer);
         this.getChildren().addAll(bouttons, scrollPane);
+    }
+
+    private void couperSegment() {
+
     }
 
     private void moveSelectedSegmentLeft() {

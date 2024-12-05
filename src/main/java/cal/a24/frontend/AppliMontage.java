@@ -25,9 +25,11 @@ public class AppliMontage extends Application {
 
         TimelineCursor cursor = new TimelineCursor();
 
+        TimelineCursorContainer timelineCursorContainer = new TimelineCursorContainer(cursor);
+
         TimelinePlayer videoViewer = new TimelinePlayer(inputGridPane, cursor);
 
-        VideoTimeline timeline = new VideoTimeline(listeLecture, cursor);
+        VideoTimeline timeline = new VideoTimeline(listeLecture, timelineCursorContainer);
 
         // Souscription à la time line du video player
         timeline.setOnChange(videoViewer::onMontageChange);
