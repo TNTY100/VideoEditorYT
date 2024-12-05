@@ -17,16 +17,24 @@ public class AppliMontage extends Application {
 
     @Override
     public void start(Stage stage) throws FFmpegFrameGrabber.Exception {
-
-        var listeLecture = new ListeLecture(stage);
-        listeLecture.addFileToList(new File("C:\\Users\\1ythibault\\Videos\\1-FonctionnementAPI.mp4"));
-        var timeline = new Timeline(listeLecture);
-
-        Rectangle videoViewer = new Rectangle();
-        videoViewer.setStyle("-fx-background-color: black");
-
         final GridPane inputGridPane = new GridPane();
         inputGridPane.setGridLinesVisible(true);
+
+
+        ListeLecture listeLecture = new ListeLecture(stage);
+
+        TimelineCursor cursor = new TimelineCursor();
+
+        TimelinePlayer videoViewer = new TimelinePlayer(inputGridPane, cursor);
+
+        VideoTimeline timeline = new VideoTimeline(listeLecture, cursor);
+
+        // Souscription à la time line du video player
+        timeline.setOnChange(videoViewer::onMontageChange);
+        timeline.setOnChangeTime(videoViewer::onMontageTimeChange);
+
+        videoViewer.fillWidthProperty().set(true);
+
 
         RowConstraints rowConstraints1 = new RowConstraints();
         rowConstraints1.setPercentHeight(60.0);
@@ -59,6 +67,10 @@ public class AppliMontage extends Application {
         Scene scene = new Scene(inputGridPane);
         inputGridPane.prefHeightProperty().bind(scene.heightProperty());
         inputGridPane.prefWidthProperty().bind(scene.widthProperty());
+
+        // Autres ajouts
+        listeLecture.addFileToList(new File("C:\\Users\\1ythibault\\Videos\\1-FonctionnementAPI.mp4"));
+
 
         stage.setScene(scene);
         stage.setMaximized(true);

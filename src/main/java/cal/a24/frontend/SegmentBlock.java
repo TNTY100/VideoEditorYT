@@ -23,7 +23,7 @@ public class SegmentBlock extends StackPane {
         NONE
     }
 
-    private final Timeline timeline;
+    private final VideoTimeline videoTimeline;
 
     private Segment segment;
     private ImageView imageViewDebut;
@@ -38,8 +38,8 @@ public class SegmentBlock extends StackPane {
     private Rectangle highlightedBorder;
     private Rectangle bgRectangle;
 
-    public SegmentBlock(Segment segment, Timeline timeline) {
-        this.timeline = timeline;
+    public SegmentBlock(Segment segment, VideoTimeline videoTimeline) {
+        this.videoTimeline = videoTimeline;
         this.segment = segment;
 
         widthLong = segment.getDuree();
@@ -89,7 +89,7 @@ public class SegmentBlock extends StackPane {
 
         setOnMousePressed(event -> {
             if (sideToResize == SideToResize.NONE) {
-                timeline.setSelectedSegment(this);
+                videoTimeline.setSelectedSegment(this);
                 return;
             }
 
@@ -159,8 +159,9 @@ public class SegmentBlock extends StackPane {
                     changeWidth(widthAtResizeStart);
                 }
             }
-
+            System.out.println(segment);
             mouseClicked = false;
+            videoTimeline.onChangeTime();
             setSideToResize(SideToResize.NONE);
         });
     }

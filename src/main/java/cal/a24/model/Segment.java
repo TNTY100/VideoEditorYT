@@ -5,14 +5,11 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.FrameConverter;
-import org.bytedeco.javacv.JavaFXFrameConverter;
+import org.bytedeco.javacv.*;
 
+import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 @Data
 public class Segment implements Closeable {
@@ -91,6 +88,29 @@ public class Segment implements Closeable {
         }
         this.timestampFin = timestampFin;
         return this;
+    }
+
+    public Image getImageFXAtTimestampInContent(long timestamp) throws FFmpegFrameGrabber.Exception {
+        timestamp = timestampDebut + timestamp;
+        if (timestamp < 0 || timestamp > timestampFin) {
+            throw new RuntimeException("Le timestamp ne fait pas parti de l'intervalle voulue");
+        }
+
+        grabber.setVideoTimestamp(timestamp);
+
+        return converter.convert(grabber.grabImage());
+    }
+
+    public void startGrab() throws FrameGrabber.Exception {
+        grabber.setAudioTimestamp(timestampDebut);
+        grabber.setVideoTimestamp(timestampDebut);
+    }
+
+    public Frame grab() throws FrameGrabber.Exception {
+        if (grabber.getTimestamp() > timestampFin) {
+            return null;
+        }
+        return grabber.grabFrame();
     }
 
     @Override

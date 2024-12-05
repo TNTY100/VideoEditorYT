@@ -1,23 +1,34 @@
+
 package cal.a24.frontend;
 
+import cal.a24.model.Montage;
 import cal.a24.model.Segment;
 import cal.a24.model.Video;
+import javafx.animation.Timeline;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import lombok.Setter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
-public class Timeline extends VBox {
+public class VideoTimeline extends VBox {
 
     private final ListeLecture listeLecture;
     private final HBox timelineVideo;
     private SegmentBlock selectedSegmentBlock;
 
-    public Timeline(ListeLecture listeLecture) {
+    private final TimelineCursor cursor;
+
+    public VideoTimeline(ListeLecture listeLecture, TimelineCursor cursor) {
         this.listeLecture = listeLecture;
 
         setFillWidth(true);
@@ -38,9 +49,14 @@ public class Timeline extends VBox {
                 moveSegmentRight,
                 deleteSegment
         );
+        StackPane stackTimeLine = new StackPane();
+        stackTimeLine.setAlignment(Pos.TOP_LEFT);
+
+        scrollPane.setContent(stackTimeLine);
 
         timelineVideo = new HBox();
-        scrollPane.setContent(timelineVideo);
+        timelineVideo.setFillHeight(false);
+        stackTimeLine.getChildren().add(timelineVideo);
 
         addVideoToTimeline.setOnAction(_ -> {
             try {
@@ -53,6 +69,12 @@ public class Timeline extends VBox {
         moveSegmentRight.setOnAction(_ -> moveSelectedSegmentRight());
         moveSegmentLeft.setOnAction(_ -> moveSelectedSegmentLeft());
 
+        // Curseur
+        this.cursor = cursor;
+        this.cursor.heightProperty().bind(scrollPane.heightProperty());
+        this.cursor.getMaxTranslateX().bind(timelineVideo.widthProperty());
+
+        stackTimeLine.getChildren().add(this.cursor);
         this.getChildren().addAll(bouttons, scrollPane);
     }
 
@@ -67,6 +89,7 @@ public class Timeline extends VBox {
 
         timelineVideo.getChildren().remove(selectedSegmentBlock);
         timelineVideo.getChildren().add(index - 1, selectedSegmentBlock);
+        onChange();
     }
 
     private void moveSelectedSegmentRight() {
@@ -80,6 +103,7 @@ public class Timeline extends VBox {
 
         timelineVideo.getChildren().remove(selectedSegmentBlock);
         timelineVideo.getChildren().add(index + 1, selectedSegmentBlock);
+        onChange();
     }
 
     private void removeSelectedSegment() {
@@ -93,6 +117,7 @@ public class Timeline extends VBox {
             throw new RuntimeException(e);
         }
         selectedSegmentBlock = null;
+        onChange();
         // Encourage le garbage collector parce que beaucoup d'objet sont devenu orphelin. (Non déterministe)
         System.gc();
     }
@@ -107,6 +132,7 @@ public class Timeline extends VBox {
         SegmentBlock segmentBlock = new SegmentBlock(segment, this);
 
         timelineVideo.getChildren().add(segmentBlock);
+        onChange();
     }
 
     public void setSelectedSegment(SegmentBlock segmentBlock) {
@@ -120,5 +146,26 @@ public class Timeline extends VBox {
             selectedSegmentBlock.setNormalBorder();
         selectedSegmentBlock = segmentBlock;
         selectedSegmentBlock.setSelectedBorder();
+    }
+
+    @Setter
+    Consumer<Montage> onChange;
+
+    private void onChange() {
+        onChange.accept(
+                new Montage(
+                        timelineVideo.getChildren().stream()
+                                .filter(n -> n instanceof SegmentBlock)
+                                .map(sb -> ((SegmentBlock) sb).getSegment())
+                                .toList()
+                )
+        );
+    }
+
+    @Setter
+    Runnable onChangeTime;
+
+    public void onChangeTime() {
+        onChangeTime.run();
     }
 }
