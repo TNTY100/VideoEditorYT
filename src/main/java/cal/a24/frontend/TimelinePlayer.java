@@ -85,7 +85,12 @@ public class TimelinePlayer extends VBox {
     public void videoUpdate(long deltaTime) {
         currentTimestamp += deltaTime * readMultiplyer;
         if (currentTimestamp > tempTotalMontage || currentTimestamp < 0 || tempTotalMontage == 0) {
-            currentTimestamp = tempTotalMontage - 1;
+            if (readMultiplyer > 0) {
+                currentTimestamp = tempTotalMontage - 1;
+            }
+            else {
+                currentTimestamp = 0;
+            }
             readMultiplyer = 0;
             try {
                 Thread.sleep(100);
@@ -114,6 +119,18 @@ public class TimelinePlayer extends VBox {
             updateImage();
             updateCursor();
         }
+    }
+
+    /**
+     *
+     * @param value Valeur entre 0 et 1
+     */
+    public void onChangeTime(Double value) {
+        if (value < 0 || value > 1) {
+            return;
+        }
+        currentTimestamp = (long) (tempTotalMontage * value);
+        updateImage();
     }
 
 

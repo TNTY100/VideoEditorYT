@@ -21,6 +21,10 @@ public class TimelineCursor extends Rectangle {
      * @param position : Value between 0 and 1
      */
     public TimelineCursor setRelativePosition(double position) {
+        if (position < 0 || position > 1) {
+            return this;
+        }
+
         setTranslateX(position * maxTranslateX.get());
         return this;
     }

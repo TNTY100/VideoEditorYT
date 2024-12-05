@@ -34,6 +34,7 @@ public class AppliMontage extends Application {
         // Souscription à la time line du video player
         timeline.setOnChange(videoViewer::onMontageChange);
         timeline.setOnChangeTime(videoViewer::onMontageTimeChange);
+        timelineCursorContainer.setOnFrameChange(videoViewer::onChangeTime);
 
         videoViewer.fillWidthProperty().set(true);
 
