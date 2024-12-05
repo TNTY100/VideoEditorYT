@@ -55,20 +55,11 @@ public class Segment implements Closeable {
     }
 
     private void setupImages() throws FFmpegFrameGrabber.Exception {
-        grabber.setTimestamp(timestampDebut);
-        Image imageDebutOg = imageDebut;
-        Frame frameStart;
-        while (imageDebutOg == imageDebut) {
-            try {
-                grabber.setFrameNumber(grabber.getFrameNumber() + 1);
-                frameStart = grabber.grabImage();
-                imageDebut = convert(frameStart);
-            }
-            catch (RuntimeException _) {}
-        }
+        findImageDebut();
+        findImageFin();
+    }
 
-        // permet d'aller chercher la dernière image même si le son continu
-
+    private void findImageFin() throws FFmpegFrameGrabber.Exception {
         grabber.setTimestamp(timestampFin);
         Image imageFinOg = imageFin;
         Frame frameFin;
@@ -77,6 +68,20 @@ public class Segment implements Closeable {
                 grabber.setFrameNumber(grabber.getFrameNumber() - 1);
                 frameFin = grabber.grabImage();
                 imageFin = convert(frameFin);
+            }
+            catch (RuntimeException _) {}
+        }
+    }
+
+    private void findImageDebut() throws FFmpegFrameGrabber.Exception {
+        grabber.setTimestamp(timestampDebut);
+        Image imageDebutOg = imageDebut;
+        Frame frameStart;
+        while (imageDebutOg == imageDebut) {
+            try {
+                grabber.setFrameNumber(grabber.getFrameNumber() + 1);
+                frameStart = grabber.grabImage();
+                imageDebut = convert(frameStart);
             }
             catch (RuntimeException _) {}
         }
@@ -108,7 +113,7 @@ public class Segment implements Closeable {
         this.timestampDebut = timestampDebut;
 
         try {
-            setupImages();
+            findImageDebut();
         } catch (FFmpegFrameGrabber.Exception e) {
             throw new RuntimeException(e);
         }
@@ -125,7 +130,7 @@ public class Segment implements Closeable {
         this.timestampFin = timestampFin;
 
         try {
-            setupImages();
+            findImageFin();
         } catch (FFmpegFrameGrabber.Exception e) {
             throw new RuntimeException(e);
         }

@@ -138,6 +138,7 @@ public class SegmentBlock extends StackPane {
 
                 try {
                     segment.setTimestampFin(nouveauTimestampFin);
+                    imageViewFin.setImage(segment.getImageFin());
                 }
                 catch (RuntimeException e) {
                     e.printStackTrace();
@@ -152,6 +153,7 @@ public class SegmentBlock extends StackPane {
 
                 try {
                     segment.setTimestampDebut(nouveauTimestampDebut);
+                    imageViewDebut.setImage(segment.getImageDebut());
                 }
                 catch (RuntimeException e) {
                     e.printStackTrace();
