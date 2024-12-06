@@ -86,6 +86,10 @@ public class TimelinePlayer extends VBox {
 
     public void videoUpdate(long deltaTime) {
         currentTimestamp += deltaTime * readMultiplyer;
+        if (readMultiplyer == 0) {
+            return;
+        }
+
         if (currentTimestamp > tempTotalMontage || currentTimestamp < 0 || tempTotalMontage == 0) {
             if (readMultiplyer > 0) {
                 currentTimestamp = tempTotalMontage - 1;

@@ -1,5 +1,6 @@
 package cal.a24.frontend;
 
+import cal.a24.model.Montage;
 import cal.a24.model.Video;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -61,7 +62,7 @@ public class ExportComponent extends GridPane {
         add(fileNameField, 1, 0);
 
         Label frameRateLabel = new Label("Image par secondes :");
-        frameRateField = new Spinner<>(1, maxFrameRate, 30);
+        frameRateField = new Spinner<>(1, maxFrameRate, 60);
         add(frameRateLabel, 0, 1);
         add(frameRateField, 1, 1);
 

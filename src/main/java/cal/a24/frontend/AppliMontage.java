@@ -6,6 +6,7 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FFmpegLogCallback;
 
 import java.io.File;
 
@@ -17,6 +18,8 @@ public class AppliMontage extends Application {
 
     @Override
     public void start(Stage stage) throws FFmpegFrameGrabber.Exception {
+        FFmpegLogCallback.set();
+
         final GridPane inputGridPane = new GridPane();
         inputGridPane.setGridLinesVisible(true);
 

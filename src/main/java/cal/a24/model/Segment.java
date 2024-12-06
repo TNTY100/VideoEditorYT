@@ -165,6 +165,7 @@ public class Segment implements Closeable {
     }
 
     public void startGrab() throws FrameGrabber.Exception {
+        mutex.lock();
         grabber.setAudioTimestamp(timestampDebut);
         grabber.setVideoTimestamp(timestampDebut);
     }
@@ -174,6 +175,9 @@ public class Segment implements Closeable {
             return null;
         }
         return grabber.grabFrame();
+    }
+    public void stopGrab() {
+        mutex.unlock();
     }
 
     @Override
