@@ -7,11 +7,8 @@ import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacv.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_FLTP;
 
 @Data
 public class Montage {
@@ -24,7 +21,6 @@ public class Montage {
     }
 
     public Image getImageFXAtTimeStamp(long timestamp) {
-        System.out.println("getImageFXAtTimeStamp");
         try {
             mutex.lock();
             if (timestamp < 0 || timestamp > getDureeTotale()) {
@@ -70,7 +66,7 @@ public class Montage {
         try {
             mutex.lock();
             try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(fileName, width, height)) {
-                // Set video and audio codec settings
+                // setup du recorder (vidéo)
                 recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
                 recorder.setFormat("mov,mp4,m4a,3gp,3g2,mj2");
                 recorder.setFrameRate(frameRate);
@@ -78,7 +74,7 @@ public class Montage {
                 recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
 
 
-                // Set audio settings
+                // setup du recorder (audio)
                 recorder.setAudioChannels(2);
                 recorder.setAudioCodec(avcodec.AV_CODEC_ID_AAC);  // AAC codec
                 recorder.setSampleRate(sampleRate);
@@ -86,20 +82,12 @@ public class Montage {
                 recorder.start();
 
                 for (Segment segment : segments) {
+                    // Démarrage de la prise d'information.
                     segment.startGrab();
-                    FFmpegFrameGrabber grabber = segment.getGrabber();
+                    // Création du filtre
+                    FFmpegFrameFilter filter = createFrameFilter(frameRate, segment);
 
-                    FFmpegFrameFilter filter = new FFmpegFrameFilter("fps=fps=" + frameRate,
-                            "anull",
-                            grabber.getImageWidth(),
-                            grabber.getImageHeight(), grabber.getAudioChannels());
-                    filter.setSampleFormat(grabber.getSampleFormat());
-                    filter.setSampleRate(grabber.getSampleRate());
-                    filter.setPixelFormat(grabber.getPixelFormat());
-                    filter.setFrameRate(grabber.getFrameRate());
-                    filter.setSampleRate(grabber.getSampleRate());
-                    filter.setSampleFormat(grabber.getSampleFormat());
-                    filter.start();
+                    // Capture du segment
                     Frame capturedFrame;
                     Frame pullFrame;
                     while ((capturedFrame = segment.grab()) != null) {
@@ -107,8 +95,8 @@ public class Montage {
                             if (capturedFrame.image != null || capturedFrame.samples != null) {
                                 filter.push(capturedFrame);
                             }
-                            if ( (pullFrame = filter.pull()) != null) {
-                                if(pullFrame.image != null || pullFrame.samples != null){
+                            if ((pullFrame = filter.pull()) != null) {
+                                if (pullFrame.image != null || pullFrame.samples != null) {
                                     recorder.record(pullFrame);
                                 }
                             }
@@ -116,12 +104,13 @@ public class Montage {
                             e.printStackTrace();
                         }
                     }
+                    // Arrêt de la capture du segment
                     filter.stop();
                     filter.close();
                     segment.stopGrab();
                 }
-                recorder.stop(); // Stop the recorder after all segments are processed
-
+                // Arrêt de la capture.
+                recorder.stop();
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Error during export: " + e.getMessage());
@@ -131,17 +120,20 @@ public class Montage {
         }
     }
 
-    public static Montage copy(Montage montage) {
-        List<Segment> list = montage.getSegments().stream().map(segment -> {
-            try {
-                return new Segment(segment.getVideoPath())
-                        .setTimestampDebut(segment.getTimestampDebut())
-                        .setTimestampFin(segment.getTimestampFin());
-            } catch (FFmpegFrameGrabber.Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).toList();
-
-        return new Montage(list);
+    private static FFmpegFrameFilter createFrameFilter(int frameRate, Segment segment) throws FFmpegFrameFilter.Exception {
+        // Le filtre cherche à harmoniser les FPS entre le grabber et le recorder
+        FFmpegFrameGrabber grabber = segment.getGrabber();
+        FFmpegFrameFilter filter = new FFmpegFrameFilter("fps=fps=" + frameRate,
+                "anull",
+                grabber.getImageWidth(),
+                grabber.getImageHeight(), grabber.getAudioChannels());
+        filter.setSampleFormat(grabber.getSampleFormat());
+        filter.setSampleRate(grabber.getSampleRate());
+        filter.setPixelFormat(grabber.getPixelFormat());
+        filter.setFrameRate(grabber.getFrameRate());
+        filter.setSampleRate(grabber.getSampleRate());
+        filter.setSampleFormat(grabber.getSampleFormat());
+        filter.start();
+        return filter;
     }
 }

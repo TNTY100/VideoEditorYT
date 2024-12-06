@@ -4,6 +4,7 @@ package cal.a24.frontend;
 import cal.a24.model.Montage;
 import cal.a24.model.Segment;
 import cal.a24.model.Video;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
@@ -21,7 +22,7 @@ public class VideoTimeline extends VBox {
     private final ListeLecture listeLecture;
     private final HBox timelineVideo;
     private SegmentBlock selectedSegmentBlock;
-    private TimelinePlayer videoViewer;
+    private final TimelinePlayer videoViewer;
 
 
     public VideoTimeline(ListeLecture listeLecture, TimelinePlayer videoViewer, TimelineCursorContainer timelineCursorContainer) {
@@ -30,6 +31,7 @@ public class VideoTimeline extends VBox {
 
         setFillWidth(true);
         ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(20));
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
 
@@ -152,6 +154,15 @@ public class VideoTimeline extends VBox {
         selectedSegmentBlock.setSelectedBorder();
     }
 
+    public Montage getMontage() {
+        return new Montage(
+                timelineVideo.getChildren().stream()
+                        .filter(n -> n instanceof SegmentBlock)
+                        .map(sb -> ((SegmentBlock) sb).getSegment())
+                        .toList()
+        );
+    }
+
     @Setter
     Consumer<Montage> onChange;
 
@@ -160,22 +171,12 @@ public class VideoTimeline extends VBox {
     }
 
     private void onChange(Montage montage) {
-        if (montage == null){
+        if (montage == null) {
             onChange.accept(
                     getMontage()
             );
-        }
-        else
+        } else
             onChange.accept(montage);
-    }
-
-    public Montage getMontage() {
-        return new Montage(
-                timelineVideo.getChildren().stream()
-                        .filter(n -> n instanceof SegmentBlock)
-                        .map(sb -> ((SegmentBlock) sb).getSegment())
-                        .toList()
-        );
     }
 
     @Setter

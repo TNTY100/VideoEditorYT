@@ -3,7 +3,6 @@ package cal.a24.model;
 import javafx.scene.image.Image;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 import lombok.Setter;
 import org.bytedeco.javacv.*;
 
@@ -14,12 +13,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Data
 public class Segment implements Closeable {
+    public static int MAX_TRY_IMAGE_GET = 10;
 
     public static FrameConverter<Image> converter = new JavaFXFrameConverter();
-
-    public static void setConverter(FrameConverter<Image> converter) { // Pour les tests s'il y en a dans le futur???
-        Segment.converter = converter;
-    }
 
     private static ReentrantLock mutexStatic = new ReentrantLock();
 
@@ -69,29 +65,31 @@ public class Segment implements Closeable {
         findImageFin();
     }
 
-    private void findImageFin() throws FFmpegFrameGrabber.Exception {
-        grabber.setTimestamp(timestampFin);
-        Image imageFinOg = imageFin;
-        Frame frameFin;
-        while (imageFinOg == imageFin) {
+    private void findImageDebut() throws FFmpegFrameGrabber.Exception {
+        grabber.setTimestamp(timestampDebut);
+        Image imageDebutOg = imageDebut;
+        Frame frameStart;
+        int tries = 0;
+        while (imageDebutOg == imageDebut && tries++ < MAX_TRY_IMAGE_GET) {
             try {
-                grabber.setFrameNumber(grabber.getFrameNumber() - 1);
-                frameFin = grabber.grabImage();
-                imageFin = convert(frameFin);
+                grabber.setFrameNumber(grabber.getFrameNumber() + 1);
+                frameStart = grabber.grabImage();
+                imageDebut = convert(frameStart);
             } catch (RuntimeException _) {
             }
         }
     }
 
-    private void findImageDebut() throws FFmpegFrameGrabber.Exception {
-        grabber.setTimestamp(timestampDebut);
-        Image imageDebutOg = imageDebut;
-        Frame frameStart;
-        while (imageDebutOg == imageDebut) {
+    private void findImageFin() throws FFmpegFrameGrabber.Exception {
+        grabber.setTimestamp(timestampFin);
+        Image imageFinOg = imageFin;
+        Frame frameFin;
+        int tries = 0;
+        while (imageFinOg == imageFin && tries++ < MAX_TRY_IMAGE_GET) {
             try {
-                grabber.setFrameNumber(grabber.getFrameNumber() + 1);
-                frameStart = grabber.grabImage();
-                imageDebut = convert(frameStart);
+                grabber.setFrameNumber(grabber.getFrameNumber() - 1);
+                frameFin = grabber.grabImage();
+                imageFin = convert(frameFin);
             } catch (RuntimeException _) {
             }
         }
@@ -146,6 +144,22 @@ public class Segment implements Closeable {
         return this;
     }
 
+    public List<Segment> splitAtTimestamp(long timestamp) {
+        try {
+            timestamp += timestampDebut;
+            Segment e2 = new Segment(videoPath)
+                    .setTimestampFin(timestampFin)
+                    .setTimestampDebut(timestamp + 1);
+            this.setTimestampFin(timestamp);
+            return List.of(
+                    this,
+                    e2
+            );
+        } catch (FFmpegFrameGrabber.Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Image getImageFXAtTimestampInContent(long timestamp) {
         try {
             mutex.lock();
@@ -165,17 +179,18 @@ public class Segment implements Closeable {
     }
 
     public void startGrab() throws FrameGrabber.Exception {
+        // Évite que l'application (UI) puisse intéragir avec la création de la vidéo.
         mutex.lock();
         grabber.setAudioTimestamp(timestampDebut);
         grabber.setVideoTimestamp(timestampDebut);
     }
-
     public Frame grab() throws FrameGrabber.Exception {
         if (grabber.getTimestamp() > timestampFin) {
             return null;
         }
         return grabber.grabFrame();
     }
+
     public void stopGrab() {
         mutex.unlock();
     }
@@ -186,21 +201,5 @@ public class Segment implements Closeable {
                 "timestampDebut=" + timestampDebut +
                 ", timestampFin=" + timestampFin +
                 '}';
-    }
-
-    public List<Segment> splitAtTimestamp(long timestamp) {
-        try {
-            timestamp += timestampDebut;
-            Segment e2 = new Segment(videoPath)
-                    .setTimestampFin(timestampFin)
-                    .setTimestampDebut(timestamp + 1);
-            this.setTimestampFin(timestamp);
-            return List.of(
-                    this,
-                    e2
-            );
-        } catch (FFmpegFrameGrabber.Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }

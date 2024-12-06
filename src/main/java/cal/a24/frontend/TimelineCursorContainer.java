@@ -17,7 +17,7 @@ public class TimelineCursorContainer extends StackPane {
         setAlignment(Pos.CENTER_LEFT);
 
         setOnMouseClicked((event) -> {
-            if (!event.isControlDown()){
+            if (!event.isControlDown()) {
                 return;
             }
             double x = event.getX();
@@ -30,6 +30,6 @@ public class TimelineCursorContainer extends StackPane {
 
     public void onChangeTime(Double value) {
         if (onFrameChange != null)
-            onFrameChange.accept(value/getWidth());
+            onFrameChange.accept(value / getWidth());
     }
 }

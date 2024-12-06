@@ -16,7 +16,7 @@ public class TimelinePlayer extends VBox {
 
     private Montage montage;
 
-    private ImageView imageView;
+    private final ImageView imageView;
 
     @Getter
     private long currentTimestamp;
@@ -46,8 +46,7 @@ public class TimelinePlayer extends VBox {
         buttonPlayPause.setOnAction(_ -> {
             if (readMultiplyer == 0) {
                 readMultiplyer = 1;
-            }
-            else {
+            } else {
                 readMultiplyer = 0;
             }
         });
@@ -93,8 +92,7 @@ public class TimelinePlayer extends VBox {
         if (currentTimestamp > tempTotalMontage || currentTimestamp < 0 || tempTotalMontage == 0) {
             if (readMultiplyer > 0) {
                 currentTimestamp = tempTotalMontage - 1;
-            }
-            else {
+            } else {
                 currentTimestamp = 0;
             }
             readMultiplyer = 0;
@@ -119,8 +117,7 @@ public class TimelinePlayer extends VBox {
         tempTotalMontage = montage.getDureeTotale();
         if (tempTotalMontage == 0) {
             imageView.setImage(image);
-        }
-        else if (currentTimestamp > tempTotalMontage) {
+        } else if (currentTimestamp > tempTotalMontage) {
             currentTimestamp = tempTotalMontage;
             updateImage();
             updateCursor();
@@ -128,8 +125,7 @@ public class TimelinePlayer extends VBox {
     }
 
     /**
-     *
-     * @param value Valeur entre 0 et 1
+     * @param value Valeurs entre 0 et 1
      */
     public void onChangeTime(Double value) {
         if (value < 0 || value > 1) {
@@ -143,8 +139,7 @@ public class TimelinePlayer extends VBox {
     public void updateImage() {
         try {
             imageView.setImage(montage.getImageFXAtTimeStamp(currentTimestamp));
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             imageView.setImage(image);
         }
     }

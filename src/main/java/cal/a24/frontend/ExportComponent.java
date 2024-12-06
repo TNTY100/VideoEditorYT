@@ -151,8 +151,8 @@ public class ExportComponent extends GridPane {
         if (!isValid) {
             return;
         }
+        // Validation des FP
         Montage montage = timeline.getMontage();
-
         int frameRate = Integer.parseInt(frameRateField.getText());
         isValid = validateField(frameRateField,
                 (_) -> frameRate > montage.getSegments().stream()
@@ -210,6 +210,7 @@ public class ExportComponent extends GridPane {
             frameGrabber.start();
 
             if (!hadFirstValueUpdate) {
+                frameRateField.setText((int) frameGrabber.getAudioFrameRate() + "");
                 widthField.setText(frameGrabber.getImageWidth() + "");
                 heightField.setText(frameGrabber.getImageHeight() + "");
                 videoBitrateField.setText(frameGrabber.getVideoBitrate() + "");

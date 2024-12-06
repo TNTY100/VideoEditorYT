@@ -5,10 +5,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import lombok.Getter;
 
+@Getter
 public class TimelineCursor extends Rectangle {
 
-    @Getter
-    private SimpleDoubleProperty maxTranslateX;
+    private final SimpleDoubleProperty maxTranslateX;
 
     public TimelineCursor() {
         maxTranslateX = new SimpleDoubleProperty(0);
@@ -17,8 +17,8 @@ public class TimelineCursor extends Rectangle {
     }
 
     /**
-     *
-     * @param position : Value between 0 and 1
+     * Place le curseur sur la timeline
+     * @param position : Valeurs entre 0 et 1
      */
     public TimelineCursor setRelativePosition(double position) {
         if (position < 0 || position > 1) {

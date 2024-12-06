@@ -105,16 +105,14 @@ public class SegmentBlock extends StackPane {
         });
 
 
-
         setOnMouseDragged(event -> {
             long dx = (long) ((event.getScreenX() - mouseX) * multiplicateur);
 
             if (sideToResize != SideToResize.NONE) {
                 long newWidth;
-                if (sideToResize == SideToResize.RIGHT){
+                if (sideToResize == SideToResize.RIGHT) {
                     newWidth = calculateMaxWidthFromRight(dx);
-                }
-                else {
+                } else {
                     newWidth = calculateMaxWidthFromLeft(dx);
                 }
                 if (newWidth > 0) {
@@ -127,7 +125,7 @@ public class SegmentBlock extends StackPane {
         });
 
         setOnMouseExited(_ -> {
-            if (sideToResize == SideToResize.NONE || mouseClicked){
+            if (sideToResize == SideToResize.NONE || mouseClicked) {
                 return;
             }
             setCursor(Cursor.DEFAULT);
@@ -135,41 +133,37 @@ public class SegmentBlock extends StackPane {
         });
 
         setOnMouseReleased(_ -> {
-            if (sideToResize == SideToResize.NONE){
+            if (sideToResize == SideToResize.NONE) {
                 return;
             }
 
             if (sideToResize == SideToResize.RIGHT) {
                 long differance = widthLong - widthAtResizeStart;
 
-                long nouveauTimestampFin = segment.getTimestampFin() +  differance;
+                long nouveauTimestampFin = segment.getTimestampFin() + differance;
 
                 try {
                     segment.setTimestampFin(nouveauTimestampFin);
                     imageViewFin.setImage(segment.getImageFin());
-                }
-                catch (RuntimeException e) {
+                } catch (RuntimeException e) {
                     e.printStackTrace();
                     // S'il y a une erreur on doit rollback.
                     changeWidth(widthAtResizeStart);
                 }
-            }
-            else {
+            } else {
                 long differance = widthLong - widthAtResizeStart;
 
-                long nouveauTimestampDebut = segment.getTimestampDebut() -  differance;
+                long nouveauTimestampDebut = segment.getTimestampDebut() - differance;
 
                 try {
                     segment.setTimestampDebut(nouveauTimestampDebut);
                     imageViewDebut.setImage(segment.getImageDebut());
-                }
-                catch (RuntimeException e) {
+                } catch (RuntimeException e) {
                     e.printStackTrace();
                     // S'il y a une erreur on doit rollback.
                     changeWidth(widthAtResizeStart);
                 }
             }
-            System.out.println(segment);
             mouseClicked = false;
             videoTimeline.onChangeTime();
             setSideToResize(SideToResize.NONE);
@@ -177,7 +171,7 @@ public class SegmentBlock extends StackPane {
     }
 
     private void checkImageOverFlow() {
-        if (bgRectangle.getWidth() < IMAGE_MAX_WIDTH){
+        if (bgRectangle.getWidth() < IMAGE_MAX_WIDTH) {
             imageViewDebut.setFitWidth(bgRectangle.getWidth());
             imageViewFin.setFitWidth(bgRectangle.getWidth());
         }
@@ -193,8 +187,7 @@ public class SegmentBlock extends StackPane {
         if (sideToResize == SideToResize.RIGHT) {
             StackPane.setAlignment(highlightedBorder, Pos.TOP_RIGHT);
             getChildren().add(highlightedBorder);
-        }
-        else if (sideToResize == SideToResize.LEFT) {
+        } else if (sideToResize == SideToResize.LEFT) {
             StackPane.setAlignment(highlightedBorder, Pos.TOP_LEFT);
             getChildren().add(highlightedBorder);
         }
@@ -203,19 +196,17 @@ public class SegmentBlock extends StackPane {
     private SideToResize getResizableBorder(MouseEvent event) {
         if (event.getX() >= getWidth() - BORDER_THICKNESS) {
             return SideToResize.RIGHT;
-        }
-        else if (event.getX() <= BORDER_THICKNESS) {
+        } else if (event.getX() <= BORDER_THICKNESS) {
             return SideToResize.LEFT;
-        }
-        else {
+        } else {
             return SideToResize.NONE;
         }
     }
 
     public void changeWidth(long width) {
         widthLong = width;
-        setWidth((double) width/multiplicateur);
-        bgRectangle.setWidth((double) width/multiplicateur);
+        setWidth((double) width / multiplicateur);
+        bgRectangle.setWidth((double) width / multiplicateur);
         checkImageOverFlow();
     }
 

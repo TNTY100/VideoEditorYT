@@ -1,7 +1,6 @@
 package cal.a24.frontend;
 
 import cal.a24.model.Video;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
@@ -91,24 +90,17 @@ public class ListeLecture extends VBox {
         onAddVideo(video);
         VideoTile videoTile = new VideoTile(video);
         videoTile.setOnMousePressed(_ -> {
-            if (selectedVideoTile != null){
+            if (selectedVideoTile != null) {
                 selectedVideoTile.setStyle("");
             }
             if (selectedVideoTile != videoTile) {
                 selectedVideoTile = videoTile;
                 selectedVideoTile.setStyle("-fx-border-color: red");
-            }
-            else {
+            } else {
                 selectedVideoTile = null;
             }
         });
         return videoTile;
-    }
-
-    @Setter
-    private Consumer<Video> onAddVideo;
-    private void onAddVideo(Video video) {
-        onAddVideo.accept(video);
     }
 
     private static void configureFileChooser(final FileChooser fileChooser) {
@@ -122,5 +114,12 @@ public class ListeLecture extends VBox {
     public Video getSelectedVideo() {
         if (selectedVideoTile == null) return null;
         return selectedVideoTile.video;
+    }
+
+    @Setter
+    private Consumer<Video> onAddVideo;
+
+    private void onAddVideo(Video video) {
+        onAddVideo.accept(video);
     }
 }
