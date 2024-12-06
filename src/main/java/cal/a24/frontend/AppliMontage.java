@@ -3,12 +3,8 @@ package cal.a24.frontend;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegLogCallback;
-
-import java.io.File;
 
 public class AppliMontage extends Application {
 
@@ -18,8 +14,6 @@ public class AppliMontage extends Application {
 
     @Override
     public void start(Stage stage) throws FFmpegFrameGrabber.Exception {
-        FFmpegLogCallback.set();
-
         final GridPane inputGridPane = new GridPane();
         inputGridPane.setGridLinesVisible(true);
 
@@ -61,10 +55,6 @@ public class AppliMontage extends Application {
         inputGridPane.getRowConstraints().addAll(rowConstraints1, rowConstraints2);
         inputGridPane.getColumnConstraints().addAll(columnConstraints1, columnConstraints2, columnConstraints3);
 
-
-
-
-
         GridPane.setConstraints(listeLecture, 0, 0);
         GridPane.setConstraints(videoViewer, 1, 0, 1, 1);
         GridPane.setConstraints(exporter, 2, 0);
@@ -75,10 +65,6 @@ public class AppliMontage extends Application {
         Scene scene = new Scene(inputGridPane);
         inputGridPane.prefHeightProperty().bind(scene.heightProperty());
         inputGridPane.prefWidthProperty().bind(scene.widthProperty());
-
-        // Autres ajouts
-        listeLecture.addFileToList(new File("C:\\Users\\1ythibault\\Videos\\1-FonctionnementAPI.mp4"));
-
 
         stage.setScene(scene);
         stage.setMaximized(true);

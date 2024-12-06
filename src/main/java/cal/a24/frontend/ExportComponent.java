@@ -2,12 +2,17 @@ package cal.a24.frontend;
 
 import cal.a24.model.Montage;
 import cal.a24.model.Video;
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
@@ -69,7 +74,7 @@ public class ExportComponent extends GridPane {
         Label widthLabel = new Label("Largeur (px) : ");
         widthField = new TextField();
         widthField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) { // Allow only digits
+            if (!newValue.matches("\\d*")) {
                 widthField.setText(oldValue);
             }
         });
@@ -79,7 +84,7 @@ public class ExportComponent extends GridPane {
         Label heightLabel = new Label("Hauteur (px) :");
         heightField = new TextField();
         heightField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) { // Allow only digits
+            if (!newValue.matches("\\d*")) {
                 heightField.setText(oldValue);
             }
         });
@@ -89,7 +94,7 @@ public class ExportComponent extends GridPane {
         Label videoBitrateLabel = new Label("Bitrate vidéo :");
         videoBitrateField = new TextField();
         videoBitrateField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) { // Allow only digits
+            if (!newValue.matches("\\d*")) {
                 videoBitrateField.setText(oldValue);
             }
         });
@@ -99,7 +104,7 @@ public class ExportComponent extends GridPane {
         Label audioBitrateLabel = new Label("Bitrate audio :");
         audioBitrateField = new TextField();
         audioBitrateField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) { // Allow only digits
+            if (!newValue.matches("\\d*")) {
                 audioBitrateField.setText(oldValue);
             }
         });
@@ -109,7 +114,7 @@ public class ExportComponent extends GridPane {
         Label sampleRateLabel = new Label("Taux d'échantillonnage (sample rate) :");
         sampleRateField = new TextField();
         sampleRateField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) { // Allow only digits
+            if (!newValue.matches("\\d*")) {
                 sampleRateField.setText(oldValue);
             }
         });
@@ -157,8 +162,27 @@ public class ExportComponent extends GridPane {
         System.out.println("Video Bitrate: " + videoBitrate);
         System.out.println("Audio Bitrate: " + audioBitrate);
 
-        new Thread(() -> timeline.getMontage().export(fileName, width, height, frameRate, videoBitrate, sampleRate, audioBitrate)).start();
+        Stage dialogBlock = new Stage();
+        dialogBlock.setTitle("Vidéo en traitement");
 
+        StackPane popupContent = new StackPane();
+        Text popupText = new Text("La vidéo est en traitement");
+        popupContent.getChildren().add(popupText);
+
+        Scene popupScene = new Scene(popupContent, 200, 100);
+        dialogBlock.setOnCloseRequest(Event::consume);
+        dialogBlock.setScene(popupScene);
+        dialogBlock.setAlwaysOnTop(true);
+        dialogBlock.initModality(Modality.APPLICATION_MODAL);
+        dialogBlock.show();
+        new Thread(() -> {
+            try {
+                timeline.getMontage().export(fileName, width, height, frameRate, videoBitrate, sampleRate, audioBitrate);
+            }
+            finally {
+                javafx.application.Platform.runLater(dialogBlock::close);
+            }
+        }).start();
 
     }
 
@@ -173,7 +197,6 @@ public class ExportComponent extends GridPane {
     }
 
     public void updateFields(Video video) {
-        System.out.println("Hello world");
         try (FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(video.getPATH())) {
             frameGrabber.start();
 

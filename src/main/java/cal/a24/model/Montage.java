@@ -83,16 +83,13 @@ public class Montage {
                 recorder.setAudioCodec(avcodec.AV_CODEC_ID_AAC);  // AAC codec
                 recorder.setSampleRate(sampleRate);
                 recorder.setAudioBitrate(audioRate);
-                // recorder.setSampleFormat(AV_SAMPLE_FMT_FLTP);
                 recorder.start();
-                System.out.println("Recording Started");
 
                 for (Segment segment : segments) {
                     segment.startGrab();
                     FFmpegFrameGrabber grabber = segment.getGrabber();
-                    Frame frame;
 
-                    FFmpegFrameFilter filter = new FFmpegFrameFilter("fps=fps=30",
+                    FFmpegFrameFilter filter = new FFmpegFrameFilter("fps=fps=" + frameRate,
                             "anull",
                             grabber.getImageWidth(),
                             grabber.getImageHeight(), grabber.getAudioChannels());
@@ -123,7 +120,6 @@ public class Montage {
                     filter.close();
                     segment.stopGrab();
                 }
-                System.out.println("Recording ended");
                 recorder.stop(); // Stop the recorder after all segments are processed
 
             } catch (Exception e) {
