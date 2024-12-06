@@ -7,6 +7,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
+import javafx.stage.Stage;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -18,6 +19,7 @@ public class TimelinePlayer extends VBox {
 
     private final ImageView imageView;
 
+    private boolean appIsOn = true;
     @Getter
     private long currentTimestamp;
     private long tempTotalMontage;
@@ -25,7 +27,7 @@ public class TimelinePlayer extends VBox {
     private final TimelineCursor cursor;
     private final Image image = new Image("file:./src/main/resources/imageGenerique.png", true);
 
-    public TimelinePlayer(GridPane inputGridPane, TimelineCursor cursor) {
+    public TimelinePlayer(GridPane inputGridPane, TimelineCursor cursor, Stage stage) {
         this.cursor = cursor;
 
         // Ajout du viewport de la vidéo
@@ -72,11 +74,12 @@ public class TimelinePlayer extends VBox {
         setBackground(Background.fill(Paint.valueOf("lightgrey")));
 
         new Thread(this::videoLoop).start();
+        stage.onCloseRequestProperty().set(event -> appIsOn = false);
     }
 
     public void videoLoop() {
         long lastUpdate = Instant.now().toEpochMilli();
-        while (true) {
+        while (appIsOn) {
             long currentUpdate = Instant.now().toEpochMilli();
             videoUpdate((currentUpdate - lastUpdate) * 1000);
             lastUpdate = currentUpdate;

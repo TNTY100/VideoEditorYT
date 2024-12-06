@@ -22,7 +22,7 @@ public class AppliMontage extends Application {
         TimelineCursor cursor = new TimelineCursor();
         TimelineCursorContainer timelineCursorContainer = new TimelineCursorContainer(cursor);
 
-        TimelinePlayer videoViewer = new TimelinePlayer(inputGridPane, cursor);
+        TimelinePlayer videoViewer = new TimelinePlayer(inputGridPane, cursor, stage);
 
         VideoTimeline timeline = new VideoTimeline(listeLecture, videoViewer, timelineCursorContainer);
 
