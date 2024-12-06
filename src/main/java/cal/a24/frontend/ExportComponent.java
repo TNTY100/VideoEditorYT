@@ -25,8 +25,7 @@ public class ExportComponent extends GridPane {
     private final VideoTimeline timeline;
     private boolean hadFirstValueUpdate = false;
     private final TextField fileNameField;
-    private final Spinner<Integer> frameRateField;
-    private int maxFrameRate = 120;
+    private final TextField frameRateField;
     private final TextField widthField;
     private final TextField heightField;
     private final TextField videoBitrateField;
@@ -67,7 +66,12 @@ public class ExportComponent extends GridPane {
         add(fileNameField, 1, 0);
 
         Label frameRateLabel = new Label("Image par secondes :");
-        frameRateField = new Spinner<>(1, maxFrameRate, 60);
+        frameRateField = new TextField();
+        frameRateField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                frameRateField.setText(oldValue);
+            }
+        });
         add(frameRateLabel, 0, 1);
         add(frameRateField, 1, 1);
 
@@ -108,8 +112,8 @@ public class ExportComponent extends GridPane {
                 audioBitrateField.setText(oldValue);
             }
         });
-        add(audioBitrateLabel, 0,  5);
-        add(audioBitrateField, 1,  5);
+        add(audioBitrateLabel, 0, 5);
+        add(audioBitrateField, 1, 5);
 
         Label sampleRateLabel = new Label("Taux d'échantillonnage (sample rate) :");
         sampleRateField = new TextField();
@@ -121,8 +125,7 @@ public class ExportComponent extends GridPane {
         add(sampleRateLabel, 0, 6);
         add(sampleRateField, 1, 6);
 
-        // Submit button
-        Button submitButton = new Button("Submit");
+        Button submitButton = new Button("Exporter");
         add(submitButton, 0, 7, 2, 1);
         submitButton.setOnAction(e -> {
             exporterMontage();
@@ -134,34 +137,41 @@ public class ExportComponent extends GridPane {
 
         Predicate<TextField> testEmpty = (TextField textField) -> textField.getText().trim().isEmpty();
 
-        // Check if any field is empty and apply styling
+        // Validation des données avec du feedback
         isValid &= validateField(fileNameField, (field) -> field.getText().matches("(\\.mp4|\\.mov)$"));
         isValid &= validateField(fileNameField, testEmpty);
+        isValid &= validateField(frameRateField, testEmpty);
         isValid &= validateField(widthField, testEmpty);
         isValid &= validateField(heightField, testEmpty);
         isValid &= validateField(videoBitrateField, testEmpty);
         isValid &= validateField(audioBitrateField, testEmpty);
         isValid &= validateField(sampleRateField, testEmpty);
 
+
+        if (!isValid) {
+            return;
+        }
+        Montage montage = timeline.getMontage();
+
+        int frameRate = Integer.parseInt(frameRateField.getText());
+        isValid = validateField(frameRateField,
+                (_) -> frameRate > montage.getSegments().stream()
+                        .mapToInt(value -> (int) value.getGrabber().getFrameRate())
+                        .min().orElse(0));
+
         if (!isValid) {
             return;
         }
 
+        // Conversion des données
         String fileName = fileNameField.getText();
-        Integer frameRate = frameRateField.getValue();
-        Integer width = Integer.valueOf(widthField.getText());
-        Integer height = Integer.valueOf(heightField.getText());
-        Integer videoBitrate = Integer.valueOf(videoBitrateField.getText());
-        Integer audioBitrate = Integer.valueOf(audioBitrateField.getText());
-        Integer sampleRate = Integer.valueOf(sampleRateField.getText());
+        int width = Integer.parseInt(widthField.getText());
+        int height = Integer.parseInt(heightField.getText());
+        int videoBitrate = Integer.parseInt(videoBitrateField.getText());
+        int audioBitrate = Integer.parseInt(audioBitrateField.getText());
+        int sampleRate = Integer.parseInt(sampleRateField.getText());
 
-        System.out.println("File Name: " + fileName);
-        System.out.println("Frame Rate: " + frameRate);
-        System.out.println("Width: " + width);
-        System.out.println("Height: " + height);
-        System.out.println("Video Bitrate: " + videoBitrate);
-        System.out.println("Audio Bitrate: " + audioBitrate);
-
+        // Préparation
         Stage dialogBlock = new Stage();
         dialogBlock.setTitle("Vidéo en traitement");
 
@@ -177,9 +187,8 @@ public class ExportComponent extends GridPane {
         dialogBlock.show();
         new Thread(() -> {
             try {
-                timeline.getMontage().export(fileName, width, height, frameRate, videoBitrate, sampleRate, audioBitrate);
-            }
-            finally {
+                montage.export(fileName, width, height, frameRate, videoBitrate, sampleRate, audioBitrate);
+            } finally {
                 javafx.application.Platform.runLater(dialogBlock::close);
             }
         }).start();

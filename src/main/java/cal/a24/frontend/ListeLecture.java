@@ -34,20 +34,23 @@ public class ListeLecture extends VBox {
 
         HBox boutonGestionContainer = new HBox();
         boutonGestionContainer.getChildren().addAll(openButton, removeButton);
-        // Enlève
 
-        videoList = new VBox();
-        videoList.setFillWidth(true);
-
-        ScrollPane scrollPane = new ScrollPane(videoList);
+        // Liste qui va contenir les vidéos
+        // permet de scroller.
+        ScrollPane scrollPane = new ScrollPane();
         VBox.setVgrow(scrollPane, Priority.ALWAYS); // Permet de grandir
         scrollPane.setFitToWidth(true);
 
+        // Liste qui contient les vidéos
+        videoList = new VBox();
+        videoList.setFillWidth(true);
         videoList.prefHeightProperty().bind(this.prefHeightProperty());
+
+        scrollPane.setContent(videoList);
 
         // Setup des actions des boutons.
         openButton.setOnAction(
-                e -> {
+                _ -> {
                     configureFileChooser(fileChooser);
                     File file = fileChooser.showOpenDialog(stage);
                     if (file != null) {
@@ -62,6 +65,7 @@ public class ListeLecture extends VBox {
                     videoList.getChildren().remove(selectedVideoTile);
                 }
         );
+        // Ajout de tous les composants.
         this.getChildren().addAll(boutonGestionContainer, scrollPane);
     }
 
