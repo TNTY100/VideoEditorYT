@@ -10,12 +10,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import lombok.Setter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.JavaFXFrameConverter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 
 public class ListeLecture extends VBox {
@@ -81,7 +83,9 @@ public class ListeLecture extends VBox {
     }
 
     private VideoTile createVideoTile(File file, Image image, FFmpegFrameGrabber grabber) {
-        VideoTile videoTile = new VideoTile(new Video(file.getPath(), image, grabber.getLengthInTime()));
+        Video video = new Video(file.getPath(), image, grabber.getLengthInTime());
+        onAddVideo(video);
+        VideoTile videoTile = new VideoTile(video);
         videoTile.setOnMousePressed(_ -> {
             if (selectedVideoTile != null){
                 selectedVideoTile.setStyle("");
@@ -95,6 +99,12 @@ public class ListeLecture extends VBox {
             }
         });
         return videoTile;
+    }
+
+    @Setter
+    private Consumer<Video> onAddVideo;
+    private void onAddVideo(Video video) {
+        onAddVideo.accept(video);
     }
 
     private static void configureFileChooser(final FileChooser fileChooser) {

@@ -169,7 +169,7 @@ public class VideoTimeline extends VBox {
             onChange.accept(montage);
     }
 
-    private Montage getMontage() {
+    public Montage getMontage() {
         return new Montage(
                 timelineVideo.getChildren().stream()
                         .filter(n -> n instanceof SegmentBlock)

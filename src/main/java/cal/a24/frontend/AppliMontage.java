@@ -31,12 +31,16 @@ public class AppliMontage extends Application {
 
         VideoTimeline timeline = new VideoTimeline(listeLecture, videoViewer, timelineCursorContainer);
 
+        ExportComponent exporter = new ExportComponent(stage, timeline);
+
         // Souscription à la time line du video player
         timeline.setOnChange(videoViewer::onMontageChange);
         timeline.setOnChangeTime(videoViewer::onMontageTimeChange);
         timelineCursorContainer.setOnFrameChange(videoViewer::onChangeTime);
 
         videoViewer.fillWidthProperty().set(true);
+
+        listeLecture.setOnAddVideo(exporter::updateFields);
 
 
         RowConstraints rowConstraints1 = new RowConstraints();
@@ -56,8 +60,6 @@ public class AppliMontage extends Application {
 
 
 
-        Rectangle exporter = new Rectangle();
-        exporter.setStyle("-fx-background-color: grey;");
 
 
         GridPane.setConstraints(listeLecture, 0, 0);

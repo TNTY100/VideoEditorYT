@@ -36,7 +36,6 @@ public class Segment implements Closeable {
     }
 
     @Setter(AccessLevel.NONE)
-    @Getter(AccessLevel.NONE)
     private FFmpegFrameGrabber grabber;
 
     private final String videoPath;
@@ -63,9 +62,6 @@ public class Segment implements Closeable {
         timestampVideoFin = grabber.getLengthInTime();
         timestampFin = timestampVideoFin;
         setupImages();
-
-        System.out.println("TD" + timestampVideoDebut);
-        System.out.println("TF" + timestampVideoFin);
     }
 
     private void setupImages() throws FFmpegFrameGrabber.Exception {
