@@ -173,11 +173,14 @@ public class SegmentBlock extends StackPane {
             mouseClicked = false;
             videoTimeline.onChangeTime();
             setSideToResize(SideToResize.NONE);
-            if (bgRectangle.getWidth() < IMAGE_MAX_WIDTH){
-                imageViewDebut.setFitWidth(bgRectangle.getWidth());
-                imageViewFin.setFitWidth(bgRectangle.getWidth());
-            }
         });
+    }
+
+    private void checkImageOverFlow() {
+        if (bgRectangle.getWidth() < IMAGE_MAX_WIDTH){
+            imageViewDebut.setFitWidth(bgRectangle.getWidth());
+            imageViewFin.setFitWidth(bgRectangle.getWidth());
+        }
     }
 
     private void setSideToResize(SideToResize sideToResize) {
@@ -213,6 +216,7 @@ public class SegmentBlock extends StackPane {
         widthLong = width;
         setWidth((double) width/multiplicateur);
         bgRectangle.setWidth((double) width/multiplicateur);
+        checkImageOverFlow();
     }
 
     public void setNormalBorder() {

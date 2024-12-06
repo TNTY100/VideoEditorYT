@@ -5,6 +5,7 @@ import lombok.Data;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -28,6 +29,25 @@ public class Montage {
             timestamp -= segment.getDuree();
         }
         return null;
+    }
+
+    public Montage cutSegmentAtTimestamp(long timestamp) {
+        if (timestamp < 0 || timestamp > getDureeTotale()) {
+            throw new RuntimeException("Le timestamp est à l'extérieur des limites");
+        }
+        List<Segment> newSegments = new ArrayList<>();
+
+
+        for (Segment segment: segments) {
+            if (timestamp < segment.getDuree() && timestamp > 0) {
+                newSegments.addAll(segment.splitAtTimestamp(timestamp));
+            }
+            else {
+                newSegments.add(segment);
+            }
+            timestamp -= segment.getDuree();
+        }
+        return new Montage(newSegments);
     }
 
     public long getDureeTotale() {

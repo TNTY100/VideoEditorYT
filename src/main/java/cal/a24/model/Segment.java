@@ -7,9 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bytedeco.javacv.*;
 
-import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Data
@@ -21,12 +21,25 @@ public class Segment implements Closeable {
         Segment.converter = converter;
     }
 
+    private static ReentrantLock mutexStatic = new ReentrantLock();
+
     public static Image convert(Frame frame) {
-        return converter.convert(frame);
+        try {
+            mutexStatic.lock();
+
+            return converter.convert(frame);
+        }
+        finally {
+            mutexStatic.unlock();
+        }
+
     }
+
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
     private FFmpegFrameGrabber grabber;
+
+    private final String videoPath;
 
     @Setter(AccessLevel.NONE)
     private long timestampDebut;
@@ -42,7 +55,8 @@ public class Segment implements Closeable {
 
 
     public Segment(String pathVideo) throws FFmpegFrameGrabber.Exception {
-        grabber = new FFmpegFrameGrabber(pathVideo);
+        this.videoPath = pathVideo;
+        grabber = new FFmpegFrameGrabber(this.videoPath);
         grabber.start();
         timestampVideoDebut = 0;
         timestampDebut = timestampVideoDebut;
@@ -68,8 +82,8 @@ public class Segment implements Closeable {
                 grabber.setFrameNumber(grabber.getFrameNumber() - 1);
                 frameFin = grabber.grabImage();
                 imageFin = convert(frameFin);
+            } catch (RuntimeException _) {
             }
-            catch (RuntimeException _) {}
         }
     }
 
@@ -82,8 +96,8 @@ public class Segment implements Closeable {
                 grabber.setFrameNumber(grabber.getFrameNumber() + 1);
                 frameStart = grabber.grabImage();
                 imageDebut = convert(frameStart);
+            } catch (RuntimeException _) {
             }
-            catch (RuntimeException _) {}
         }
     }
 
@@ -97,8 +111,7 @@ public class Segment implements Closeable {
             mutex.lock();
             grabber.stop();
             grabber.close();
-        }
-        finally {
+        } finally {
             mutex.unlock();
         }
     }
@@ -148,11 +161,9 @@ public class Segment implements Closeable {
             grabber.setVideoTimestamp(timestamp);
 
             return converter.convert(grabber.grabImage());
-        }
-        catch (FFmpegFrameGrabber.Exception e) {
+        } catch (FFmpegFrameGrabber.Exception e) {
             throw new RuntimeException("Le grabber était déjà fermé");
-        }
-        finally {
+        } finally {
             mutex.unlock();
         }
     }
@@ -175,5 +186,21 @@ public class Segment implements Closeable {
                 "timestampDebut=" + timestampDebut +
                 ", timestampFin=" + timestampFin +
                 '}';
+    }
+
+    public List<Segment> splitAtTimestamp(long timestamp) {
+        try {
+            timestamp += timestampDebut;
+            Segment e2 = new Segment(videoPath)
+                    .setTimestampFin(timestampFin)
+                    .setTimestampDebut(timestamp + 1);
+            this.setTimestampFin(timestamp);
+            return List.of(
+                    this,
+                    e2
+            );
+        } catch (FFmpegFrameGrabber.Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

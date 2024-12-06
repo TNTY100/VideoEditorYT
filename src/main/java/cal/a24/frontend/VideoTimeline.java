@@ -4,20 +4,16 @@ package cal.a24.frontend;
 import cal.a24.model.Montage;
 import cal.a24.model.Segment;
 import cal.a24.model.Video;
-import javafx.animation.Timeline;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import lombok.Setter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class VideoTimeline extends VBox {
@@ -25,9 +21,11 @@ public class VideoTimeline extends VBox {
     private final ListeLecture listeLecture;
     private final HBox timelineVideo;
     private SegmentBlock selectedSegmentBlock;
+    private TimelinePlayer videoViewer;
 
 
-    public VideoTimeline(ListeLecture listeLecture, TimelineCursorContainer timelineCursorContainer) {
+    public VideoTimeline(ListeLecture listeLecture, TimelinePlayer videoViewer, TimelineCursorContainer timelineCursorContainer) {
+        this.videoViewer = videoViewer;
         this.listeLecture = listeLecture;
 
         setFillWidth(true);
@@ -74,7 +72,14 @@ public class VideoTimeline extends VBox {
     }
 
     private void couperSegment() {
+        Montage montage = getMontage().cutSegmentAtTimestamp(videoViewer.getCurrentTimestamp());
+        List<SegmentBlock> segmentBlocks = montage.getSegments().stream().map(
+                segment -> new SegmentBlock(segment, this)
+        ).toList();
 
+        timelineVideo.getChildren().clear();
+        timelineVideo.getChildren().addAll(segmentBlocks);
+        onChange();
     }
 
     private void moveSelectedSegmentLeft() {
@@ -151,13 +156,25 @@ public class VideoTimeline extends VBox {
     Consumer<Montage> onChange;
 
     private void onChange() {
-        onChange.accept(
-                new Montage(
-                        timelineVideo.getChildren().stream()
-                                .filter(n -> n instanceof SegmentBlock)
-                                .map(sb -> ((SegmentBlock) sb).getSegment())
-                                .toList()
-                )
+        onChange(null);
+    }
+
+    private void onChange(Montage montage) {
+        if (montage == null){
+            onChange.accept(
+                    getMontage()
+            );
+        }
+        else
+            onChange.accept(montage);
+    }
+
+    private Montage getMontage() {
+        return new Montage(
+                timelineVideo.getChildren().stream()
+                        .filter(n -> n instanceof SegmentBlock)
+                        .map(sb -> ((SegmentBlock) sb).getSegment())
+                        .toList()
         );
     }
 
