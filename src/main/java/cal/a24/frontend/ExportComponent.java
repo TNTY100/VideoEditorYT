@@ -210,7 +210,7 @@ public class ExportComponent extends GridPane {
             frameGrabber.start();
 
             if (!hadFirstValueUpdate) {
-                frameRateField.setText((int) frameGrabber.getAudioFrameRate() + "");
+                frameRateField.setText((int) frameGrabber.getFrameRate() + "");
                 widthField.setText(frameGrabber.getImageWidth() + "");
                 heightField.setText(frameGrabber.getImageHeight() + "");
                 videoBitrateField.setText(frameGrabber.getVideoBitrate() + "");
